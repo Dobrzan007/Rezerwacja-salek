@@ -236,7 +236,7 @@ def find_user_reservations(user_name: str, password: str) -> list:
 
 
 def update_reservation(token: str, room_id: int, date: str, start_time: str, end_time: str,
-                       description=None) -> bool:
+                       user_name: str = None, description=None) -> bool:
     # Get old reservation data for email notification
     conn = get_connection(); cur = conn.cursor()
     cur.execute("""SELECT r.*, rm.name as room_name 
@@ -263,8 +263,12 @@ def update_reservation(token: str, room_id: int, date: str, start_time: str, end
     new_room_name = cur.fetchone()['name']
     
     # Update reservation
-    cur.execute("UPDATE reservations SET room_id=?, date=?, start_time=?, end_time=?, description=? WHERE token=?",
-                (room_id, date, start_time, end_time, description, token))
+    if user_name:
+        cur.execute("UPDATE reservations SET room_id=?, date=?, start_time=?, end_time=?, user_name=?, description=? WHERE token=?",
+                    (room_id, date, start_time, end_time, user_name, description, token))
+    else:
+        cur.execute("UPDATE reservations SET room_id=?, date=?, start_time=?, end_time=?, description=? WHERE token=?",
+                    (room_id, date, start_time, end_time, description, token))
     ok = cur.rowcount > 0
     conn.commit(); conn.close()
     

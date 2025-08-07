@@ -125,7 +125,8 @@ def api_edit_reservation(token):
     try:
         success = update_reservation(
             token, data['room_id'], data['date'], 
-            data['start_time'], data['end_time'], data['user_name']
+            data['start_time'], data['end_time'], 
+            data['user_name'], data.get('description', '')
         )
         
         if success:

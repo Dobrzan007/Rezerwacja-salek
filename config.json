@@ -1,0 +1,41 @@
+{
+    "company": {
+        "name": "DACPOL",
+        "system_title": "System Rezerwacji Sal - DACPOL"
+    },
+    "rooms": [
+        "Sala wideo parter",
+        "2 piętro MAŁA",
+        "2 piętro DUŻA",
+        "3 piętro LEWY",
+        "3 piętro PRAWY",
+        "1 piętro MAIN",
+        "Sala konferencyjna A"
+    ],
+    "admin": {
+        "master_password": "TWORZENIEKONTA",
+        "default_admin": {
+            "username": "sekretarka",
+            "password": "TajneHaslo123"
+        }
+    },
+    "email": {
+        "enabled": true,
+        "smtp_server": "poczta.dacpol.eu",
+        "smtp_port": 587,
+        "use_tls": true,
+        "sender_email": "system@dacpol.eu",
+        "sender_password": "TUTAJ_WPISZ_HASLO_DO_EMAILA",
+        "recipient_email": "dacpoledi@dacpol.eu",
+        "sender_name": "System Rezerwacji Sal"
+    },
+    "server": {
+        "host": "0.0.0.0",
+        "port": 5000,
+        "debug": false
+    },
+    "security": {
+        "session_secret": "super-secret-key-change-me-in-production",
+        "password_min_length": 4
+    }
+}

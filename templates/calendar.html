@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>{{ system_title or 'System Rezerwacji Sal - DACPOL' }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .toolbar {
+            background: #ecf0f1;
+            padding: 15px 20px;
+            border-bottom: 2px solid #bdc3c7;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary { background: #3498db; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-purple { background: #9b59b6; color: white; }
+        .btn-dark { background: #34495e; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        
+        .navigation {
+            background: #ecf0f1;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+        
+        .week-info {
+            flex: 1;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .calendar-container {
+            padding: 20px;
+            overflow-x: auto;
+        }
+        
+        .calendar {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .calendar th {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1em;
+        }
+        
+        .calendar th.day-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            width: 150px;
+        }
+        
+        .calendar td {
+            border: 1px solid #bdc3c7;
+            padding: 10px;
+            vertical-align: top;
+            min-height: 80px;
+            position: relative;
+        }
+        
+        .calendar tr:nth-child(even) td {
+            background: #f8f9fa;
+        }
+        
+        .calendar tr:nth-child(odd) td {
+            background: white;
+        }
+        
+        .day-cell {
+            font-weight: bold;
+            text-align: center;
+            background: #ecf0f1 !important;
+            color: #2c3e50;
+        }
+        
+        .room-cell {
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            min-height: 100px;
+        }
+        
+        .room-cell:hover {
+            background: #e8f4fd !important;
+        }
+        
+        .reservation {
+            background: linear-gradient(135deg, #e8f4fd 0%, #d6eaff 100%);
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            padding: 8px;
+            margin: 2px;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .reservation:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .reservation .time {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 0.9em;
+        }
+        
+        .reservation .user {
+            color: #34495e;
+            font-size: 0.85em;
+            margin-top: 2px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .admin-info {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-left: auto;
+            font-weight: bold;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                text-align: center;
+                margin-bottom: 5px;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .calendar {
+                font-size: 14px;
+            }
+            
+            .calendar th, .calendar td {
+                padding: 8px 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>System Rezerwacji Sal</h1>
+            <div class="subtitle">DACPOL</div>
+        </div>
+        
+        <div class="toolbar">
+            <button class="btn btn-primary" onclick="showNewReservationModal()">
+                ➕ Nowa rezerwacja
+            </button>
+            {% if is_admin %}
+            <button class="btn btn-warning" onclick="showEditReservationModal()">
+                ✏️ Edytuj rezerwację
+            </button>
+            {% endif %}
+            
+            {% if not is_admin %}
+            <a href="/login" class="btn btn-purple">
+                🔑 Login Sekretarka
+            </a>
+            {% else %}
+            <a href="/logout" class="btn btn-success">
+                🚪 Wyloguj ({{ admin_username }})
+            </a>
+            {% endif %}
+            
+            <a href="/create_admin" class="btn btn-dark">
+                👤 Utwórz konto sekretarki
+            </a>
+            
+            {% if is_admin %}
+            <div class="admin-info">
+                ✅ Zalogowano jako administrator: {{ admin_username }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="navigation">
+            <button class="nav-btn" onclick="changeWeek(-1)">◀ Poprzedni tydzień</button>
+            <button class="nav-btn" onclick="changeWeek(1)">Następny tydzień ▶</button>
+            <div class="week-info" id="weekInfo">Ładowanie...</div>
+            <div style="font-size: 0.9em; color: #7f8c8d; margin-top: 10px;">
+                💡 <strong>Wskazówka:</strong> Kliknij na rezerwację aby ją usunąć lub edytować
+            </div>
+        </div>
+        
+        <div class="calendar-container">
+            <table class="calendar" id="calendar">
+                <thead id="calendarHeader">
+                    <!-- Headers will be generated by JavaScript -->
+                </thead>
+                <tbody id="calendarBody">
+                    <!-- Calendar will be generated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="newReservationModal" class="modal">
+        <div class="modal-content">
+            <h2>Nowa rezerwacja</h2>
+            <form id="newReservationForm">
+                <div class="form-group">
+                    <label>Sala:</label>
+                    <select id="newRoomSelect" required>
+                        <!-- Options will be loaded by JavaScript -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Data:</label>
+                    <input type="date" id="newDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Godzina rozpoczęcia:</label>
+                    <input type="time" id="newStartTime" required value="09:00">
+                </div>
+                <div class="form-group">
+                    <label>Godzina zakończenia:</label>
+                    <input type="time" id="newEndTime" required value="10:00">
+                </div>
+                <div class="form-group">
+                    <label>Imię i nazwisko:</label>
+                    <input type="text" id="newUserName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="newEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Hasło do rezerwacji:</label>
+                    <input type="password" id="newPassword" required 
+                           placeholder="Hasło do późniejszej edycji/usunięcia">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="closeModal('newReservationModal')">Anuluj</button>
+                    <button type="submit" class="btn btn-primary">Zarezerwuj</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div id="deleteReservationModal" class="modal">
+        <div class="modal-content">
+            <h2>Usuń rezerwację</h2>
+            
+            <!-- Szczegóły rezerwacji do usunięcia -->
+            <div class="reservation-details" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h3>Szczegóły rezerwacji:</h3>
+                <p><strong>Użytkownik:</strong> <span id="deleteUserName">-</span></p>
+                <p><strong>Sala:</strong> <span id="deleteRoomName">-</span></p>
+                <p><strong>Data:</strong> <span id="deleteDate">-</span></p>
+                <p><strong>Czas:</strong> <span id="deleteTime">-</span></p>
+                <p><strong>Opis:</strong> <span id="deleteDescription">-</span></p>
+            </div>
+            
+            <form id="deleteReservationForm">
+                {% if not is_admin %}
+                <div class="form-group">
+                    <label>Potwierdź hasłem:</label>
+                    <input type="password" id="deletePassword" required 
+                           placeholder="Wpisz hasło do tej rezerwacji">
+                </div>
+                {% endif %}
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="closeModal('deleteReservationModal')">Anuluj</button>
+                    <button type="submit" class="btn btn-danger">Usuń rezerwację</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if is_admin %}
+    <div id="editReservationModal" class="modal">
+        <div class="modal-content">
+            <h2>Edytuj rezerwację</h2>
+            <form id="editReservationForm">
+                <div class="form-group">
+                    <label>Token rezerwacji:</label>
+                    <input type="text" id="editToken" required>
+                </div>
+                <div class="form-group">
+                    <label>Sala:</label>
+                    <select id="editRoomSelect" required>
+                        <!-- Options will be loaded by JavaScript -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Data:</label>
+                    <input type="date" id="editDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Godzina rozpoczęcia:</label>
+                    <input type="time" id="editStartTime" required>
+                </div>
+                <div class="form-group">
+                    <label>Godzina zakończenia:</label>
+                    <input type="time" id="editEndTime" required>
+                </div>
+                <div class="form-group">
+                    <label>Imię i nazwisko:</label>
+                    <input type="text" id="editUserName" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="closeModal('editReservationModal')">Anuluj</button>
+                    <button type="submit" class="btn btn-warning">Zapisz zmiany</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+        // Global variables
+        let currentWeekStart = getMonday(new Date());
+        let rooms = [];
+        let reservations = [];
+        let isAdmin = false;
+        let currentDeleteToken = null; // Token rezerwacji do usunięcia
+        let currentDeleteReservation = null; // Dane rezerwacji do usunięcia
+        
+        // Set admin status from server
+        {% if is_admin %}
+        isAdmin = true;
+        {% endif %}
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRooms();
+            loadCalendar();
+            setupEventListeners();
+        });
+
+        function getMonday(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function formatDisplayDate(date) {
+            return date.toLocaleDateString('pl-PL');
+        }
+
+        async function loadRooms() {
+            try {
+                const response = await fetch('/api/rooms');
+                rooms = await response.json();
+                
+                // Populate room selects
+                const selects = ['newRoomSelect', 'editRoomSelect'];
+                selects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    if (select) {
+                        select.innerHTML = '';
+                        rooms.forEach(room => {
+                            const option = document.createElement('option');
+                            option.value = room.id;
+                            option.textContent = room.name;
+                            select.appendChild(option);
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading rooms:', error);
+            }
+        }
+
+        async function loadReservations() {
+            try {
+                const endDate = new Date(currentWeekStart);
+                endDate.setDate(endDate.getDate() + 4);
+                
+                const response = await fetch(`/api/reservations?start_date=${formatDate(currentWeekStart)}&end_date=${formatDate(endDate)}`);
+                reservations = await response.json();
+            } catch (error) {
+                console.error('Error loading reservations:', error);
+            }
+        }
+
+        async function loadCalendar() {
+            await loadReservations();
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const header = document.getElementById('calendarHeader');
+            const body = document.getElementById('calendarBody');
+            const weekInfo = document.getElementById('weekInfo');
+            
+            // Update week info
+            const endDate = new Date(currentWeekStart);
+            endDate.setDate(endDate.getDate() + 4);
+            weekInfo.textContent = `Tydzień: ${formatDisplayDate(currentWeekStart)} - ${formatDisplayDate(endDate)}`;
+            
+            // Generate header
+            header.innerHTML = '';
+            const headerRow = document.createElement('tr');
+            
+            // Day column header
+            const dayHeader = document.createElement('th');
+            dayHeader.textContent = 'DNI TYGODNIA';
+            dayHeader.className = 'day-header';
+            headerRow.appendChild(dayHeader);
+            
+            // Room headers
+            rooms.forEach(room => {
+                const roomHeader = document.createElement('th');
+                roomHeader.textContent = room.name;
+                headerRow.appendChild(roomHeader);
+            });
+            
+            header.appendChild(headerRow);
+            
+            // Generate body
+            body.innerHTML = '';
+            const dayNames = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek'];
+            
+            for (let dayIndex = 0; dayIndex < 5; dayIndex++) {
+                const row = document.createElement('tr');
+                const currentDate = new Date(currentWeekStart);
+                currentDate.setDate(currentDate.getDate() + dayIndex);
+                
+                // Day cell
+                const dayCell = document.createElement('td');
+                dayCell.className = 'day-cell';
+                dayCell.innerHTML = `<strong>${dayNames[dayIndex]}</strong><br>${formatDisplayDate(currentDate)}`;
+                row.appendChild(dayCell);
+                
+                // Room cells
+                rooms.forEach(room => {
+                    const roomCell = document.createElement('td');
+                    roomCell.className = 'room-cell';
+                    roomCell.onclick = () => openNewReservationModal(room.id, formatDate(currentDate));
+                    
+                    // Find reservations for this room and date
+                    const dayReservations = reservations.filter(res => 
+                        res.room_id === room.id && res.date === formatDate(currentDate)
+                    );
+                    
+                    dayReservations.forEach(reservation => {
+                        const reservationDiv = document.createElement('div');
+                        reservationDiv.className = 'reservation';
+                        reservationDiv.onclick = (e) => {
+                            e.stopPropagation();
+                            handleReservationClick(reservation);
+                        };
+                        reservationDiv.innerHTML = `
+                            <div class="time">${reservation.start_time}-${reservation.end_time}</div>
+                            <div class="user">${reservation.user_name}</div>
+                        `;
+                        roomCell.appendChild(reservationDiv);
+                    });
+                    
+                    row.appendChild(roomCell);
+                });
+                
+                body.appendChild(row);
+            }
+        }
+
+        function changeWeek(direction) {
+            currentWeekStart.setDate(currentWeekStart.getDate() + (direction * 7));
+            loadCalendar();
+        }
+
+        function handleReservationClick(reservation) {
+            if (isAdmin) {
+                if (confirm('Edytować rezerwację? (OK = Edytuj, Anuluj = Usuń)')) {
+                    // Edit
+                    document.getElementById('editToken').value = reservation.token;
+                    showModal('editReservationModal');
+                } else {
+                    // Delete - pokaż szczegóły przed usunięciem
+                    currentDeleteToken = reservation.token;
+                    currentDeleteReservation = reservation;
+                    showDeleteModal();
+                    showModal('deleteReservationModal');
+                }
+            } else {
+                if (confirm('Usunąć tę rezerwację?')) {
+                    currentDeleteToken = reservation.token;
+                    currentDeleteReservation = reservation;
+                    showDeleteModal();
+                    showModal('deleteReservationModal');
+                }
+            }
+        }
+
+        async function deleteReservationAdmin(token) {
+            try {
+                const response = await fetch(`/api/reservations/${token}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Rezerwacja została usunięta');
+                    loadCalendar();
+                } else {
+                    alert('Błąd: ' + result.error);
+                }
+            } catch (error) {
+                alert('Błąd połączenia: ' + error.message);
+            }
+        }
+
+        function setupEventListeners() {
+            // New reservation form
+            document.getElementById('newReservationForm').onsubmit = async function(e) {
+                e.preventDefault();
+                await createReservation();
+            };
+            
+            // Delete reservation form
+            document.getElementById('deleteReservationForm').onsubmit = async function(e) {
+                e.preventDefault();
+                await deleteReservation();
+            };
+            
+            // Edit reservation form
+            const editForm = document.getElementById('editReservationForm');
+            if (editForm) {
+                editForm.onsubmit = async function(e) {
+                    e.preventDefault();
+                    await editReservation();
+                };
+            }
+            
+            // Close modals when clicking outside
+            window.onclick = function(event) {
+                const modals = document.querySelectorAll('.modal');
+                modals.forEach(modal => {
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            };
+        }
+
+        async function createReservation() {
+            const data = {
+                room_id: parseInt(document.getElementById('newRoomSelect').value),
+                date: document.getElementById('newDate').value,
+                start_time: document.getElementById('newStartTime').value,
+                end_time: document.getElementById('newEndTime').value,
+                user_name: document.getElementById('newUserName').value,
+                email: document.getElementById('newEmail').value,
+                password: document.getElementById('newPassword').value
+            };
+            
+            try {
+                const response = await fetch('/api/reservations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`Rezerwacja utworzona!\nToken: ${result.token}\n\nZapisz token - będzie potrzebny do usunięcia rezerwacji.`);
+                    closeModal('newReservationModal');
+                    document.getElementById('newReservationForm').reset();
+                    loadCalendar();
+                } else {
+                    alert('Błąd: ' + result.error);
+                }
+            } catch (error) {
+                alert('Błąd połączenia: ' + error.message);
+            }
+        }
+
+        async function deleteReservation() {
+            const token = currentDeleteToken;
+            const password = document.getElementById('deletePassword')?.value || '';
+            
+            if (!token) {
+                alert('Błąd: Brak danych rezerwacji');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/reservations/${token}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password: password })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Rezerwacja została usunięta');
+                    closeModal('deleteReservationModal');
+                    document.getElementById('deleteReservationForm').reset();
+                    loadCalendar();
+                } else {
+                    alert('Błąd: ' + result.error);
+                }
+            } catch (error) {
+                alert('Błąd połączenia: ' + error.message);
+            }
+        }
+
+        async function editReservation() {
+            const token = document.getElementById('editToken').value;
+            const data = {
+                room_id: parseInt(document.getElementById('editRoomSelect').value),
+                date: document.getElementById('editDate').value,
+                start_time: document.getElementById('editStartTime').value,
+                end_time: document.getElementById('editEndTime').value,
+                user_name: document.getElementById('editUserName').value
+            };
+            
+            try {
+                const response = await fetch(`/api/reservations/${token}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Rezerwacja została zaktualizowana');
+                    closeModal('editReservationModal');
+                    document.getElementById('editReservationForm').reset();
+                    loadCalendar();
+                } else {
+                    alert('Błąd: ' + result.error);
+                }
+            } catch (error) {
+                alert('Błąd połączenia: ' + error.message);
+            }
+        }
+
+        function showNewReservationModal() {
+            showModal('newReservationModal');
+        }
+
+        function showEditReservationModal() {
+            showModal('editReservationModal');
+        }
+
+        function openNewReservationModal(roomId = null, date = null) {
+            if (roomId) {
+                document.getElementById('newRoomSelect').value = roomId;
+            }
+            if (date) {
+                document.getElementById('newDate').value = date;
+            }
+            showModal('newReservationModal');
+        }
+
+        function showDeleteModal() {
+            if (currentDeleteReservation) {
+                const res = currentDeleteReservation;
+                document.getElementById('deleteUserName').textContent = res.user_name;
+                document.getElementById('deleteRoomName').textContent = res.room_name;
+                document.getElementById('deleteDate').textContent = res.date;
+                document.getElementById('deleteTime').textContent = `${res.start_time} - ${res.end_time}`;
+                document.getElementById('deleteDescription').textContent = res.description || 'Brak opisu';
+            }
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+    </script>
+</body>
+</html>

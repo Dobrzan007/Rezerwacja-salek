@@ -202,6 +202,14 @@
             margin-top: 2px;
         }
         
+        .reservation .description-indicator {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
         .modal {
             display: none;
             position: fixed;
@@ -240,16 +248,17 @@
             color: #2c3e50;
         }
         
-        .form-group input, .form-group select {
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 10px;
             border: 2px solid #bdc3c7;
             border-radius: 8px;
             font-size: 16px;
             transition: border-color 0.3s ease;
+            resize: vertical; /* Pozwala na zmianę wysokości */
         }
         
-        .form-group input:focus, .form-group select:focus {
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
             border-color: #3498db;
         }
@@ -416,6 +425,11 @@
                     <input type="password" id="newPassword" required 
                            placeholder="Hasło do późniejszej edycji/usunięcia">
                 </div>
+                <div class="form-group">
+                    <label>Opis (opcjonalny):</label>
+                    <textarea id="newDescription" rows="3" 
+                              placeholder="Np. spotkanie z klientem, prezentacja, szkolenie..."></textarea>
+                </div>
                 <div class="form-actions">
                     <button type="button" class="btn" onclick="closeModal('newReservationModal')">Anuluj</button>
                     <button type="submit" class="btn btn-primary">Zarezerwuj</button>
@@ -484,6 +498,11 @@
                 <div class="form-group">
                     <label>Imię i nazwisko:</label>
                     <input type="text" id="editUserName" required>
+                </div>
+                <div class="form-group">
+                    <label>Opis (opcjonalny):</label>
+                    <textarea id="editDescription" rows="3" 
+                              placeholder="Np. spotkanie z klientem, prezentacja, szkolenie..."></textarea>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn" onclick="closeModal('editReservationModal')">Anuluj</button>
@@ -633,9 +652,22 @@
                             e.stopPropagation();
                             handleReservationClick(reservation);
                         };
+                        
+                        // Dodaj tooltip z opisem jeśli istnieje
+                        const description = reservation.description && reservation.description.trim() 
+                            ? reservation.description 
+                            : '';
+                        
+                        if (description) {
+                            reservationDiv.title = `${reservation.user_name}\n${reservation.start_time}-${reservation.end_time}\n\nOpis: ${description}`;
+                        } else {
+                            reservationDiv.title = `${reservation.user_name}\n${reservation.start_time}-${reservation.end_time}`;
+                        }
+                        
                         reservationDiv.innerHTML = `
                             <div class="time">${reservation.start_time}-${reservation.end_time}</div>
                             <div class="user">${reservation.user_name}</div>
+                            ${description ? `<div class="description-indicator">📋</div>` : ''}
                         `;
                         roomCell.appendChild(reservationDiv);
                     });
@@ -655,8 +687,14 @@
         function handleReservationClick(reservation) {
             if (isAdmin) {
                 if (confirm('Edytować rezerwację? (OK = Edytuj, Anuluj = Usuń)')) {
-                    // Edit
+                    // Edit - ładujemy dane do formularza
                     document.getElementById('editToken').value = reservation.token;
+                    document.getElementById('editRoomSelect').value = reservation.room_id;
+                    document.getElementById('editDate').value = reservation.date;
+                    document.getElementById('editStartTime').value = reservation.start_time;
+                    document.getElementById('editEndTime').value = reservation.end_time;
+                    document.getElementById('editUserName').value = reservation.user_name;
+                    document.getElementById('editDescription').value = reservation.description || '';
                     showModal('editReservationModal');
                 } else {
                     // Delete - pokaż szczegóły przed usunięciem
@@ -739,7 +777,8 @@
                 end_time: document.getElementById('newEndTime').value,
                 user_name: document.getElementById('newUserName').value,
                 email: document.getElementById('newEmail').value,
-                password: document.getElementById('newPassword').value
+                password: document.getElementById('newPassword').value,
+                description: document.getElementById('newDescription').value
             };
             
             try {
@@ -806,7 +845,8 @@
                 date: document.getElementById('editDate').value,
                 start_time: document.getElementById('editStartTime').value,
                 end_time: document.getElementById('editEndTime').value,
-                user_name: document.getElementById('editUserName').value
+                user_name: document.getElementById('editUserName').value,
+                description: document.getElementById('editDescription').value
             };
             
             try {

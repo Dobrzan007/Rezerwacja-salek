@@ -81,7 +81,7 @@ def api_create_reservation():
         token = create_reservation(
             data['room_id'], data['date'], data['start_time'], 
             data['end_time'], data['user_name'], data['password'],
-            data.get('email', '')
+            data.get('email', ''), data.get('description', '')
         )
         
         return jsonify({'success': True, 'token': token})

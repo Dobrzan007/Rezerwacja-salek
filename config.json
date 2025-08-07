@@ -16,7 +16,8 @@
         "master_password": "TWORZENIEKONTA",
         "default_admin": {
             "username": "sekretarka",
-            "password": "TajneHaslo123"
+            "password": "TajneHaslo123",
+            "email": "admin@dacpol.eu"
         }
     },
     "email": {

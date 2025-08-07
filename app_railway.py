@@ -255,6 +255,24 @@ try:
                     'modules': LOCAL_MODULES_OK,
                     'timestamp': datetime.datetime.now().isoformat()
                 })
+            
+            # Debug endpoint to check rooms data
+            @app.route('/debug/rooms')
+            def debug_rooms():
+                if not LOCAL_MODULES_OK:
+                    return jsonify({'error': 'Modules not loaded'})
+                
+                try:
+                    rooms = get_rooms()
+                    return jsonify({
+                        'raw_rooms': rooms,
+                        'rooms_count': len(rooms),
+                        'rooms_type': str(type(rooms)),
+                        'first_room_type': str(type(rooms[0])) if rooms else 'No rooms',
+                        'processed_rooms': [{'id': r['id'], 'name': r['name']} for r in rooms if isinstance(r, dict)]
+                    })
+                except Exception as e:
+                    return jsonify({'error': str(e)})
                 
             print("✅ Routes loaded successfully")
             

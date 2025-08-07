@@ -4,7 +4,15 @@ import os
 class Config:
     """Klasa do zarządzania konfiguracją aplikacji"""
     
-    def __init__(self, config_file='config.json'):
+    def __init__(self, config_file=None):
+        # Wybierz config file na podstawie środowiska
+        if config_file is None:
+            is_production = os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PORT')
+            if is_production:
+                config_file = 'config_production.json'
+            else:
+                config_file = 'config.json'
+        
         self.config_file = config_file
         self.config = self._load_config()
     

@@ -44,6 +44,11 @@ try:
                 room_names = config.get_rooms()
                 seed_rooms(room_names)
                 
+                # Wyłącz email w środowisku Railway (brak dostępu do SMTP)
+                is_production = os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PORT')
+                if is_production:
+                    print("🌐 Production mode - email notifications disabled")
+                
                 # Create default admin from config
                 default_admin = config.get_default_admin()
                 if default_admin:
@@ -71,21 +76,51 @@ try:
             def admin():
                 return render_template('login.html')
             
-            @app.route('/login', methods=['POST'])
+            @app.route('/login', methods=['GET', 'POST'])
             def login():
-                if not LOCAL_MODULES_OK:
-                    return jsonify({'error': 'System configuration error'}), 500
-                    
-                username = request.form['username']
-                password = request.form['password']
+                """Admin login"""
+                if request.method == 'POST':
+                    try:
+                        data = request.json
+                        username = data.get('username', '')
+                        password = data.get('password', '')
+                        
+                        if authenticate_admin(username, password):
+                            session['is_admin'] = True
+                            session['admin_username'] = username
+                            return jsonify({'success': True})
+                        else:
+                            return jsonify({'error': 'Nieprawidłowe dane logowania'}), 401
+                    except Exception as e:
+                        print(f"Login error: {e}")
+                        return jsonify({'error': 'Błąd logowania'}), 500
                 
-                if authenticate_admin(username, password):
-                    session['is_admin'] = True
-                    session['admin_username'] = username
-                    return redirect(url_for('index'))
-                else:
-                    flash('Nieprawidłowa nazwa użytkownika lub hasło')
-                    return redirect(url_for('admin'))
+                return render_template('login.html')
+            
+            @app.route('/create_admin', methods=['GET', 'POST'])
+            def create_admin():
+                """Create new admin account"""
+                if request.method == 'POST':
+                    try:
+                        data = request.json
+                        
+                        success = create_admin_with_master_password(
+                            data['username'], data['password'], 
+                            data['email'], data['master_password']
+                        )
+                        
+                        if success:
+                            return jsonify({'success': True})
+                        else:
+                            return jsonify({'error': 'Nie udało się utworzyć konta'}), 400
+                            
+                    except ValueError as e:
+                        return jsonify({'error': str(e)}), 400
+                    except Exception as e:
+                        print(f"Create admin error: {e}")
+                        return jsonify({'error': str(e)}), 500
+                
+                return render_template('create_admin.html')
             
             @app.route('/logout')
             def logout():

@@ -28,7 +28,7 @@ def initialize_app():
         cur.execute("INSERT OR IGNORE INTO admins (username, password_hash, email) VALUES (?, ?, ?)",
                     (default_admin.get('username'), 
                      hash_password(default_admin.get('password')), 
-                     'sekretarka@dacpol.eu'))
+                     'admin@dacpol.eu'))
         conn.commit()
         conn.close()
 

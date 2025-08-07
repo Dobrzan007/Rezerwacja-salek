@@ -104,7 +104,7 @@ def send_edit_notification(user_email: str, user_name: str, room_name: str,
     subject = "Twoja rezerwacja została zmodyfikowana"
     body = f"""Witaj {user_name}!
 
-Twoja rezerwacja została zmodyfikowana przez sekretarkę:
+Twoja rezerwacja została zmodyfikowana przez administratora:
 
 POPRZEDNIE DANE:
 🏢 Sala: {room_name}
@@ -127,13 +127,13 @@ def send_deletion_notification(user_email: str, user_name: str, room_name: str,
     subject = "Twoja rezerwacja została usunięta"
     body = f"""Witaj {user_name}!
 
-Twoja rezerwacja została usunięta przez sekretarkę:
+Twoja rezerwacja została usunięta przez administratora:
 
 🏢 Sala: {room_name}
 📅 Data: {date}
 ⏰ Czas: {start_time} - {end_time}
 
-Jeśli to pomyłka, skontaktuj się z sekretarką.
+Jeśli to pomyłka, skontaktuj się z administratorem.
 
 Pozdrawiamy,
 System Rezerwacji Sal

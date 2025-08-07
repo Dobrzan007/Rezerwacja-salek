@@ -97,8 +97,144 @@ try:
                 if not LOCAL_MODULES_OK:
                     return jsonify([])
                     
-                rooms = get_rooms()
-                return jsonify([{'id': r[0], 'name': r[1]} for r in rooms])
+                try:
+                    # Upewnij się że baza jest zainicjalizowana
+                    rooms = get_rooms()
+                    if not rooms:
+                        # Jeśli brak sal, zainicjalizuj je ponownie
+                        print("No rooms found, reinitializing...")
+                        room_names = config.get_rooms()
+                        seed_rooms(room_names)
+                        rooms = get_rooms()
+                    
+                    # Bezpieczne przetwarzanie danych
+                    room_list = []
+                    for r in rooms:
+                        if isinstance(r, (list, tuple)) and len(r) >= 2:
+                            room_list.append({'id': r[0], 'name': r[1]})
+                        elif hasattr(r, 'id') and hasattr(r, 'name'):
+                            room_list.append({'id': r.id, 'name': r.name})
+                        else:
+                            print(f"Unexpected room format: {r}")
+                    
+                    return jsonify(room_list)
+                except Exception as e:
+                    print(f"Error in api_rooms: {e}")
+                    # Fallback - zwróć sale z konfiguracji
+                    try:
+                        room_names = config.get_rooms()
+                        fallback_rooms = [{'id': i+1, 'name': name} for i, name in enumerate(room_names)]
+                        return jsonify(fallback_rooms)
+                    except:
+                        return jsonify([{'id': 1, 'name': 'Sala przykładowa'}])
+            
+            @app.route('/api/reservations')
+            def api_reservations():
+                """Get reservations for a date range"""
+                if not LOCAL_MODULES_OK:
+                    return jsonify([])
+                
+                try:
+                    start_date = request.args.get('start_date')
+                    end_date = request.args.get('end_date')
+                    
+                    if not start_date or not end_date:
+                        return jsonify({'error': 'start_date and end_date required'}), 400
+                    
+                    reservations = get_reservations_between(start_date, end_date)
+                    return jsonify(reservations)
+                except Exception as e:
+                    print(f"Error in api_reservations: {e}")
+                    return jsonify([])
+
+            @app.route('/api/reservations', methods=['POST'])
+            def api_create_reservation():
+                """Create new reservation"""
+                if not LOCAL_MODULES_OK:
+                    return jsonify({'error': 'System maintenance mode'}), 503
+                
+                try:
+                    data = request.json
+                    
+                    # Validate required fields
+                    required_fields = ['room_id', 'date', 'start_time', 'end_time', 'user_name', 'password']
+                    for field in required_fields:
+                        if field not in data:
+                            return jsonify({'error': f'Missing field: {field}'}), 400
+                    
+                    # Check availability
+                    if not is_available(data['room_id'], data['date'], data['start_time'], data['end_time']):
+                        return jsonify({'error': 'Sala jest już zarezerwowana w tym czasie'}), 400
+                    
+                    # Create reservation
+                    token = create_reservation(
+                        data['room_id'], data['date'], data['start_time'], 
+                        data['end_time'], data['user_name'], data['password'],
+                        data.get('email', ''), data.get('description', '')
+                    )
+                    
+                    return jsonify({'success': True, 'token': token})
+                    
+                except Exception as e:
+                    print(f"Error in api_create_reservation: {e}")
+                    return jsonify({'error': str(e)}), 500
+
+            @app.route('/api/reservations/<token>', methods=['DELETE'])
+            def api_delete_reservation(token):
+                """Delete reservation"""
+                if not LOCAL_MODULES_OK:
+                    return jsonify({'error': 'System maintenance mode'}), 503
+                
+                try:
+                    data = request.json or {}
+                    password = data.get('password', '')
+                    
+                    if session.get('is_admin'):
+                        # Admin can delete without password
+                        success = delete_reservation_admin(token)
+                    else:
+                        # Regular user needs password
+                        success = delete_reservation_with_password(token, password)
+                    
+                    if success:
+                        return jsonify({'success': True})
+                    else:
+                        return jsonify({'error': 'Nieprawidłowy token lub hasło'}), 400
+                        
+                except Exception as e:
+                    print(f"Error in api_delete_reservation: {e}")
+                    return jsonify({'error': str(e)}), 500
+
+            @app.route('/api/reservations/<token>', methods=['PUT'])
+            def api_edit_reservation(token):
+                """Edit reservation (admin only)"""
+                if not LOCAL_MODULES_OK:
+                    return jsonify({'error': 'System maintenance mode'}), 503
+                
+                if not session.get('is_admin'):
+                    return jsonify({'error': 'Unauthorized'}), 403
+                
+                try:
+                    data = request.json
+                    
+                    success = update_reservation(
+                        token,
+                        data.get('room_id'),
+                        data.get('date'),
+                        data.get('start_time'),
+                        data.get('end_time'),
+                        data.get('user_name'),
+                        data.get('description', '')
+                    )
+                    
+                    if success:
+                        return jsonify({'success': True})
+                    else:
+                        return jsonify({'error': 'Failed to update reservation'}), 400
+                        
+                except Exception as e:
+                    print(f"Error in api_edit_reservation: {e}")
+                    return jsonify({'error': str(e)}), 500
             
             # Simple health check endpoint
             @app.route('/health')

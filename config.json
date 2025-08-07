@@ -5,18 +5,18 @@
     },
     "rooms": [
         "Sala wideo parter",
+        "Sala obiadowa parter", 
+        "Sala wideo 1-piętro",
+        "Sala wideo 2-piętro",
+        "2 piętro produktowa",
         "2 piętro MAŁA",
-        "2 piętro DUŻA",
-        "3 piętro LEWY",
-        "3 piętro PRAWY",
-        "1 piętro MAIN",
-        "Sala konferencyjna A"
+        "2 piętro STARY GABINET"
     ],
     "admin": {
         "master_password": "TWORZENIEKONTA",
         "default_admin": {
-            "username": "sekretarka",
-            "password": "TajneHaslo123",
+            "username": "administrator",
+            "password": "AdminDacpol2025",
             "email": "admin@dacpol.eu"
         }
     },

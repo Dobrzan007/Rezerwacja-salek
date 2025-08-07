@@ -110,12 +110,23 @@ try:
                     # Bezpieczne przetwarzanie danych
                     room_list = []
                     for r in rooms:
-                        if isinstance(r, (list, tuple)) and len(r) >= 2:
+                        if isinstance(r, dict):
+                            # Format słownikowy: {'id': 99, 'name': 'Sala wideo parter'}
+                            room_list.append({'id': r['id'], 'name': r['name']})
+                        elif isinstance(r, (list, tuple)) and len(r) >= 2:
+                            # Format tuple/list: (id, name)
                             room_list.append({'id': r[0], 'name': r[1]})
                         elif hasattr(r, 'id') and hasattr(r, 'name'):
+                            # Format obiektu: r.id, r.name
                             room_list.append({'id': r.id, 'name': r.name})
                         else:
                             print(f"Unexpected room format: {r}")
+                            # Próbuj wyciągnąć dane w każdy możliwy sposób
+                            if hasattr(r, '__getitem__'):
+                                try:
+                                    room_list.append({'id': r['id'], 'name': r['name']})
+                                except (KeyError, TypeError):
+                                    pass
                     
                     return jsonify(room_list)
                 except Exception as e:

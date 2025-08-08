@@ -22,13 +22,13 @@
     },
     "email": {
         "enabled": true,
-        "smtp_server": "poczta.dacpol.eu",
+        "smtp_server": "smtp.gmail.com",
         "smtp_port": 587,
         "use_tls": true,
-        "sender_email": "system@dacpol.eu",
-        "sender_password": "TUTAJ_WPISZ_HASLO_DO_EMAILA",
+        "sender_email": "dobrzanski.mateusz05@gmail.com",
+        "sender_password": "uccb qatu vekh gppu",
         "recipient_email": "dacpoledi@dacpol.eu",
-        "sender_name": "System Rezerwacji Sal"
+        "sender_name": "System Rezerwacji Sal - DACPOL"
     },
     "server": {
         "host": "0.0.0.0",

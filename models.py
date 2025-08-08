@@ -451,3 +451,77 @@ def get_active_reservations_for_admin() -> list:
         import traceback
         traceback.print_exc()
         return []
+
+
+def get_all_admins() -> list:
+    """
+    Funkcja pobiera listę wszystkich kont administratorów.
+    
+    Zwraca listę słowników z danymi administratorów (bez haseł).
+    """
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT username, email FROM admins ORDER BY username")
+        results = cursor.fetchall()
+        
+        admins = []
+        for result in results:
+            admins.append({
+                'username': result[0],
+                'email': result[1] or 'Brak emaila'
+            })
+        
+        conn.close()
+        return admins
+        
+    except Exception as e:
+        print(f"Błąd pobierania listy adminów: {e}")
+        return []
+
+
+def delete_admin_account(username: str, password: str) -> bool:
+    """
+    Funkcja usuwa konto administratora po weryfikacji hasła.
+    
+    Parametry:
+    - username: nazwa użytkownika do usunięcia
+    - password: hasło do weryfikacji
+    
+    Zwraca True jeśli usunięcie powiodło się, False w przeciwnym razie.
+    """
+    try:
+        from db import hash_password
+        
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        # Sprawdź czy konto istnieje i hasło jest poprawne
+        password_hash = hash_password(password)
+        cursor.execute("SELECT username FROM admins WHERE username = ? AND password_hash = ?", 
+                      (username, password_hash))
+        admin = cursor.fetchone()
+        
+        if not admin:
+            print(f"Nieprawidłowe hasło dla użytkownika {username}")
+            conn.close()
+            return False
+        
+        # Usuń konto
+        cursor.execute("DELETE FROM admins WHERE username = ?", (username,))
+        success = cursor.rowcount > 0
+        
+        conn.commit()
+        conn.close()
+        
+        if success:
+            print(f"Usunięto konto administratora: {username}")
+        else:
+            print(f"Nie udało się usunąć konta: {username}")
+            
+        return success
+        
+    except Exception as e:
+        print(f"Błąd usuwania konta administratora: {e}")
+        return False

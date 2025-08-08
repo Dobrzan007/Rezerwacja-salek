@@ -133,53 +133,333 @@
             border-radius: 8px;
             margin-bottom: 20px;
         }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-tab {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 20px;
+            background: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-tab.active {
+            background: #3498db;
+        }
+        
+        .btn-tab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .admin-list {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .admin-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .admin-item:last-child {
+            border-bottom: none;
+        }
+        
+        .admin-item:hover {
+            background: #e9ecef;
+        }
+        
+        .admin-item.selected {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .admin-info {
+            flex-grow: 1;
+        }
+        
+        .admin-username {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .admin-email {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        
+        .delete-form {
+            display: none;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .delete-form.active {
+            display: block;
+        }
+        
+        .delete-warning {
+            color: #721c24;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="create-container">
         <div class="create-header">
-            <h1>👤 Utwórz konto admina</h1>
+            <h1>👤 Zarządzanie kontami adminów</h1>
             <p>System Rezerwacji Sal - DACPOL</p>
         </div>
         
-        <div class="warning">
-            <strong>⚠️ Uwaga:</strong> Do utworzenia konta administratora potrzebne jest hasło główne.
+        <div class="button-group">
+            <button class="btn-tab active" onclick="showTab('create')">➕ Utwórz konto</button>
+            <button class="btn-tab" onclick="showTab('delete')">🗑️ Usuń konto</button>
         </div>
         
         <div id="message"></div>
         
-        <form id="createAdminForm">
-            <div class="form-group">
-                <label for="username">Nazwa użytkownika:</label>
-                <input type="text" id="username" name="username" required>
-                <small>Nazwa do logowania (np. "administrator", "admin")</small>
+        <!-- Tab: Tworzenie konta -->
+        <div id="createTab" class="tab-content active">
+            <div class="warning">
+                <strong>⚠️ Uwaga:</strong> Do utworzenia konta administratora potrzebne jest hasło główne.
+            </div>
+            
+            <form id="createAdminForm">
+                <div class="form-group">
+                    <label for="username">Nazwa użytkownika:</label>
+                    <input type="text" id="username" name="username" required>
+                    <small>Nazwa do logowania (np. "administrator", "admin")</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Hasło:</label>
+                    <input type="password" id="password" name="password" required>
+                    <small>Wybierz silne hasło</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                    <small>Email do powiadomień o rezerwacjach</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="masterPassword">Hasło główne:</label>
+                    <input type="password" id="masterPassword" name="masterPassword" required>
+                    <small>Hasło wymagane do tworzenia nowych kont administratorów</small>
+                </div>
+                
+                <button type="submit" class="btn">Utwórz konto</button>
+            </form>
+        </div>
+        
+        <!-- Tab: Usuwanie konta -->
+        <div id="deleteTab" class="tab-content">
+            <div class="warning">
+                <strong>⚠️ Uwaga:</strong> Usunięcie konta administratora jest nieodwracalne!
             </div>
             
             <div class="form-group">
-                <label for="password">Hasło:</label>
-                <input type="password" id="password" name="password" required>
-                <small>Wybierz silne hasło</small>
+                <label>Wybierz konto do usunięcia:</label>
+                <div id="adminList" class="admin-list">
+                    <div style="text-align: center; color: #7f8c8d; padding: 20px;">
+                        Ładowanie listy administratorów...
+                    </div>
+                </div>
             </div>
             
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
-                <small>Email do powiadomień o rezerwacjach</small>
+            <div id="deleteForm" class="delete-form">
+                <div class="delete-warning">
+                    ⚠️ Czy na pewno chcesz usunąć konto: <span id="selectedAdminName"></span>?
+                </div>
+                
+                <div class="form-group">
+                    <label for="deletePassword">Wpisz hasło do konta <span id="selectedAdminNameInput"></span>:</label>
+                    <input type="password" id="deletePassword" name="deletePassword" required>
+                    <small>Musisz podać hasło do usuwanego konta w celu potwierdzenia</small>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="btn" onclick="confirmDeleteAdmin()">Usuń konto</button>
+                    <button type="button" class="btn btn-secondary" onclick="cancelDelete()">Anuluj</button>
+                </div>
             </div>
-            
-            <div class="form-group">
-                <label for="masterPassword">Hasło główne:</label>
-                <input type="password" id="masterPassword" name="masterPassword" required>
-                <small>Hasło wymagane do tworzenia nowych kont administratorów</small>
-            </div>
-            
-            <button type="submit" class="btn">Utwórz konto</button>
-        </form>
+        </div>
         
         <a href="/" class="btn btn-secondary">◀ Powrót do kalendarza</a>
     </div>
 
     <script>
+        let selectedAdmin = null;
+        
+        // Funkcja przełączania zakładek
+        function showTab(tabName) {
+            // Ukryj wszystkie zakładki
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Usuń aktywne style z przycisków
+            document.querySelectorAll('.btn-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Pokaż wybraną zakładkę
+            if (tabName === 'create') {
+                document.getElementById('createTab').classList.add('active');
+                document.querySelector('.btn-tab[onclick*="create"]').classList.add('active');
+            } else if (tabName === 'delete') {
+                document.getElementById('deleteTab').classList.add('active');
+                document.querySelector('.btn-tab[onclick*="delete"]').classList.add('active');
+                loadAdminList();
+            }
+            
+            // Wyczyść komunikaty
+            document.getElementById('message').innerHTML = '';
+        }
+        
+        // Funkcja ładowania listy adminów
+        async function loadAdminList() {
+            try {
+                const response = await fetch('/api/admins');
+                const admins = await response.json();
+                
+                const adminListDiv = document.getElementById('adminList');
+                
+                if (admins.length === 0) {
+                    adminListDiv.innerHTML = '<div style="text-align: center; color: #7f8c8d; padding: 20px;">Brak kont administratorów</div>';
+                    return;
+                }
+                
+                let html = '';
+                admins.forEach(admin => {
+                    html += `
+                        <div class="admin-item" onclick="selectAdmin('${admin.username}', '${admin.email}')">
+                            <div class="admin-info">
+                                <div class="admin-username">${admin.username}</div>
+                                <div class="admin-email">${admin.email}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                adminListDiv.innerHTML = html;
+                
+            } catch (error) {
+                document.getElementById('adminList').innerHTML = '<div style="color: #e74c3c; text-align: center; padding: 20px;">Błąd ładowania listy adminów</div>';
+            }
+        }
+        
+        // Funkcja wybierania admina do usunięcia
+        function selectAdmin(username, email) {
+            // Usuń poprzednie zaznaczenie
+            document.querySelectorAll('.admin-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Zaznacz wybrany element
+            event.target.closest('.admin-item').classList.add('selected');
+            
+            selectedAdmin = username;
+            document.getElementById('selectedAdminName').textContent = username;
+            document.getElementById('selectedAdminNameInput').textContent = username;
+            document.getElementById('deleteForm').classList.add('active');
+            document.getElementById('deletePassword').value = '';
+        }
+        
+        // Funkcja anulowania usuwania
+        function cancelDelete() {
+            selectedAdmin = null;
+            document.getElementById('deleteForm').classList.remove('active');
+            document.querySelectorAll('.admin-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+        }
+        
+        // Funkcja potwierdzania usunięcia
+        async function confirmDeleteAdmin() {
+            if (!selectedAdmin) {
+                showMessage('Wybierz konto do usunięcia', 'error');
+                return;
+            }
+            
+            const password = document.getElementById('deletePassword').value;
+            if (!password) {
+                showMessage('Wpisz hasło do konta', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admins/${selectedAdmin}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password: password })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage(`Konto ${selectedAdmin} zostało usunięte`, 'success');
+                    cancelDelete();
+                    loadAdminList(); // Odśwież listę
+                } else {
+                    showMessage('Błąd: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Błąd połączenia: ' + error.message, 'error');
+            }
+        }
+        
+        // Funkcja wyświetlania komunikatów
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            const className = type === 'success' ? 'success' : 'error';
+            messageDiv.innerHTML = `<div class="${className}">${text}</div>`;
+            
+            // Automatyczne ukrycie komunikatu po 5 sekundach
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 5000);
+        }
+        
+        // Formularz tworzenia konta
         document.getElementById('createAdminForm').onsubmit = async function(e) {
             e.preventDefault();
             
@@ -187,7 +467,6 @@
             const password = document.getElementById('password').value;
             const email = document.getElementById('email').value;
             const masterPassword = document.getElementById('masterPassword').value;
-            const messageDiv = document.getElementById('message');
             
             try {
                 const response = await fetch('/create_admin', {
@@ -201,13 +480,18 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    messageDiv.innerHTML = '<div class="success">Konto utworzone pomyślnie!</div>';
+                    showMessage('Konto utworzone pomyślnie!', 'success');
                     document.getElementById('createAdminForm').reset();
+                    
+                    // Jeśli jesteśmy na zakładce usuwania, odśwież listę
+                    if (document.getElementById('deleteTab').classList.contains('active')) {
+                        loadAdminList();
+                    }
                 } else {
-                    messageDiv.innerHTML = '<div class="error">Błąd: ' + result.error + '</div>';
+                    showMessage('Błąd: ' + result.error, 'error');
                 }
             } catch (error) {
-                messageDiv.innerHTML = '<div class="error">Błąd połączenia: ' + error.message + '</div>';
+                showMessage('Błąd połączenia: ' + error.message, 'error');
             }
         };
     </script>

@@ -121,6 +121,39 @@ try:
                 
                 return render_template('create_admin.html')
             
+            @app.route('/api/admins')
+            def api_get_admins():
+                """Get list of all admin accounts"""
+                if not LOCAL_MODULES_OK:
+                    return jsonify([])
+                try:
+                    from models import get_all_admins
+                    admins = get_all_admins()
+                    return jsonify(admins)
+                except Exception as e:
+                    return jsonify({'error': str(e)}), 500
+
+            @app.route('/api/admins/<username>', methods=['DELETE'])
+            def api_delete_admin(username):
+                """Delete admin account"""
+                if not LOCAL_MODULES_OK:
+                    return jsonify({'error': 'System maintenance mode'}), 503
+                
+                data = request.json
+                password = data.get('password', '')
+                
+                try:
+                    from models import delete_admin_account
+                    success = delete_admin_account(username, password)
+                    
+                    if success:
+                        return jsonify({'success': True})
+                    else:
+                        return jsonify({'error': 'Nieprawidłowe hasło lub konto nie istnieje'}), 400
+                        
+                except Exception as e:
+                    return jsonify({'error': str(e)}), 500
+            
             @app.route('/logout')
             def logout():
                 session.clear()

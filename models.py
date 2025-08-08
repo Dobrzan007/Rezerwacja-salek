@@ -397,3 +397,57 @@ def edit_reservation_admin(reservation_id, user_name, description, room_id, date
             print(f"Email sending failed: {e}")
     
     return ok
+
+
+def get_active_reservations_for_admin() -> list:
+    """
+    Funkcja pobiera aktywne rezerwacje (dzisiejsze i przyszłe) 
+    dla administratora z formatowaniem do dropdown.
+    
+    Zwraca listę słowników z danymi rezerwacji przygotowanymi do wyświetlenia.
+    """
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        # Pobierz rezerwacje od dzisiaj w przyszłość
+        from datetime import datetime
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        query = """
+            SELECT r.token, r.user_name, r.room_id, r.date, 
+                   r.start_time, r.end_time, r.description, rm.name as room_name
+            FROM reservations r
+            LEFT JOIN rooms rm ON r.room_id = rm.id
+            WHERE r.date >= ?
+            ORDER BY r.date ASC, r.start_time ASC
+        """
+        
+        cursor.execute(query, (today,))
+        results = cursor.fetchall()
+        
+        reservations = []
+        for result in results:
+            display_text = f"{result[1]} - {result[7] or f'Sala {result[2]}'} - {result[3]} {result[4]}-{result[5]}"
+            
+            reservations.append({
+                'token': result[0],
+                'display': display_text,
+                'user_name': result[1],
+                'room_id': result[2],
+                'room_name': result[7] or f'Sala {result[2]}',
+                'date': result[3],
+                'start_time': result[4],
+                'end_time': result[5],
+                'description': result[6] or ''
+            })
+        
+        conn.close()
+        print(f"Znaleziono {len(reservations)} aktywnych rezerwacji dla administratora")
+        return reservations
+        
+    except Exception as e:
+        print(f"Błąd pobierania aktywnych rezerwacji: {e}")
+        import traceback
+        traceback.print_exc()
+        return []

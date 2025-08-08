@@ -13,7 +13,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
     from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
     import datetime
-    import json
     
     # Try to import local modules with error handling
     try:
@@ -350,7 +349,10 @@ try:
             print("🚀 Development mode")
             print(f"📅 Aplikacja dostępna pod adresem: http://localhost:5000")
             print("⏹️  Aby zatrzymać serwer naciśnij Ctrl+C")
-            app.run(host='0.0.0.0', port=5000, debug=True)
+            
+            # Use debug mode from config or environment
+            debug_mode = config.get_debug_mode() if LOCAL_MODULES_OK else False
+            app.run(host='0.0.0.0', port=5000, debug=debug_mode)
     
     if __name__ == '__main__':
         run_app()

@@ -123,6 +123,10 @@ class Config:
         """Sprawdza czy email jest włączony"""
         return self.get('email', 'enabled') is True
     
+    def get_debug_mode(self):
+        """Zwraca tryb debug z konfiguracji"""
+        return self.get('server', 'debug') or False
+    
     def reload(self):
         """Przeładowuje konfigurację z pliku"""
         self.config = self._load_config()

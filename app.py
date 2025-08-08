@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 import datetime
-import json
 from db import init_db, get_connection, hash_password
 from config import config
 from models import (

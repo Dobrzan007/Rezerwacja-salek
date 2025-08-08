@@ -10,11 +10,11 @@ def test_gmail_connection():
     print("🧪 Test połączenia z Gmail SMTP...")
     
     try:
-        # Parametry Gmail SMTP
+        # Parametry Gmail SMTP - ZAKTUALIZOWANE
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
-        email = "dobrzanski.mateusz05@gmail.com"
-        password = "uccb qatu vekh gppu"
+        email = "daspolrezerwacjesalek@gmail.com"
+        password = "wenu zrdg lktq duqf"
         
         print(f"📧 Łączenie z {smtp_server}:{smtp_port}...")
         

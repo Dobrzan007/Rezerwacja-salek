@@ -25,15 +25,15 @@
         "smtp_server": "smtp.gmail.com",
         "smtp_port": 587,
         "use_tls": true,
-        "sender_email": "dobrzanski.mateusz05@gmail.com",
-        "sender_password": "uccb qatu vekh gppu",
+        "sender_email": "daspolrezerwacjesalek@gmail.com",
+        "sender_password": "wenu zrdg lktq duqf",
         "recipient_email": "dacpoledi@dacpol.eu",
         "sender_name": "System Rezerwacji Sal - DACPOL"
     },
     "server": {
         "host": "0.0.0.0",
         "port": 5000,
-        "debug": false
+        "debug": true
     },
     "security": {
         "session_secret": "super-secret-key-change-me-in-production",

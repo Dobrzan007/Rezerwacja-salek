@@ -25,8 +25,8 @@
         "smtp_server": "smtp.gmail.com",
         "smtp_port": 587,
         "use_tls": true,
-        "sender_email": "dobrzanski.mateusz05@gmail.com",
-        "sender_password": "uccb qatu vekh gppu",
+        "sender_email": "daspolrezerwacjesalek@gmail.com",
+        "sender_password": "wenu zrdg lktq duqf",
         "recipient_email": "dacpoledi@dacpol.eu",
         "sender_name": "System Rezerwacji Sal - DACPOL"
     },

@@ -135,7 +135,7 @@ def create_reservation(room_id: int, date: str, start_time: str, end_time: str,
     # Send confirmation email to user
     try:
         from email_service import send_reservation_confirmation, send_admin_notification
-        send_reservation_confirmation(user_email, user_name, room_name, date, start_time, end_time, token)
+        send_reservation_confirmation(user_email, user_name, room_name, date, start_time, end_time, token, password)
         
         # Send notification to all admins
         admin_emails = get_admin_emails()
@@ -170,11 +170,35 @@ def delete_reservation_by_token(token: str) -> bool:
 
 
 def delete_reservation_with_password(token: str, password: str) -> bool:
+    # Get reservation data before deletion for email notification
     conn = get_connection(); cur = conn.cursor()
+    cur.execute("""SELECT r.*, rm.name as room_name 
+                   FROM reservations r 
+                   JOIN rooms rm ON r.room_id = rm.id 
+                   WHERE r.token=?""", (token,))
+    res_data = cur.fetchone()
+    
     from db import hash_password
     password_hash = hash_password(password)
     cur.execute("DELETE FROM reservations WHERE token=? AND password_hash=?", (token, password_hash))
-    ok = cur.rowcount > 0; conn.commit(); conn.close(); return ok
+    ok = cur.rowcount > 0
+    conn.commit(); conn.close()
+    
+    # Send notification to admins if deletion successful
+    if ok and res_data:
+        try:
+            from email_service import send_admin_deletion_notification
+            send_admin_deletion_notification(
+                res_data['user_name'], 
+                res_data['room_name'],
+                res_data['date'],
+                res_data['start_time'],
+                res_data['end_time']
+            )
+        except Exception as e:
+            print(f"Email sending failed: {e}")
+    
+    return ok
 
 
 def delete_reservation_admin(token: str) -> bool:

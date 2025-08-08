@@ -44,7 +44,7 @@ def send_email(to_email: str, subject: str, body: str) -> bool:
         return False
 
 def send_reservation_confirmation(user_email: str, user_name: str, room_name: str, 
-                                date: str, start_time: str, end_time: str, token: str):
+                                date: str, start_time: str, end_time: str, token: str, password: str):
     """Send confirmation email to user"""
     subject = "Potwierdzenie rezerwacji sali"
     body = f"""Witaj {user_name}!
@@ -55,8 +55,9 @@ Twoja rezerwacja została pomyślnie utworzona:
 📅 Data: {date}
 ⏰ Czas: {start_time} - {end_time}
 🎫 Token: {token}
+🔑 Hasło do anulowania: {password}
 
-Pamiętaj swoje hasło - będzie potrzebne do usunięcia rezerwacji.
+WAŻNE: Zapisz swoje hasło - będzie potrzebne do usunięcia rezerwacji!
 
 Pozdrawiamy,
 System Rezerwacji Sal
@@ -139,3 +140,28 @@ Pozdrawiamy,
 System Rezerwacji Sal
 """
     return send_email(user_email, subject, body)
+
+def send_admin_deletion_notification(user_name: str, room_name: str, 
+                                   date: str, start_time: str, end_time: str):
+    """Send notification to admins about user self-deletion"""
+    subject = "Użytkownik usunął swoją rezerwację"
+    body = f"""Powiadomienie dla administratorów!
+
+Użytkownik {user_name} usunął swoją rezerwację:
+
+🏢 Sala: {room_name}
+📅 Data: {date}
+⏰ Czas: {start_time} - {end_time}
+👤 Użytkownik: {user_name}
+
+Rezerwacja została pomyślnie usunięta z systemu.
+
+--
+System Rezerwacji Sal - DACPOL
+"""
+    
+    # Send to configured admin email
+    admin_email = config.get_email_config().get('recipient_email')
+    if admin_email:
+        return send_email(admin_email, subject, body)
+    return False

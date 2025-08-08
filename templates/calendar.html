@@ -531,8 +531,10 @@
             <h2>Edytuj rezerwację</h2>
             <form id="editReservationForm">
                 <div class="form-group">
-                    <label>Token rezerwacji:</label>
-                    <input type="text" id="editToken" required>
+                    <label>Wybierz rezerwację:</label>
+                    <select id="editReservationSelect" required>
+                        <option value="">Ładowanie rezerwacji...</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Sala:</label>
@@ -744,15 +746,19 @@
         function handleReservationClick(reservation) {
             if (isAdmin) {
                 if (confirm('Edytować rezerwację? (OK = Edytuj, Anuluj = Usuń)')) {
-                    // Edit - ładujemy dane do formularza
-                    document.getElementById('editToken').value = reservation.token;
-                    document.getElementById('editRoomSelect').value = reservation.room_id;
-                    document.getElementById('editDate').value = reservation.date;
-                    document.getElementById('editStartTime').value = reservation.start_time;
-                    document.getElementById('editEndTime').value = reservation.end_time;
-                    document.getElementById('editUserName').value = reservation.user_name;
-                    document.getElementById('editDescription').value = reservation.description || '';
-                    showModal('editReservationModal');
+                    // Edit - otwieramy modal i pre-selectujemy rezerwację
+                    showEditReservationModal().then(() => {
+                        // Po załadowaniu dropdown, znajdź i wybierz odpowiednią rezerwację
+                        const select = document.getElementById('editReservationSelect');
+                        for (let option of select.options) {
+                            if (option.value === reservation.token) {
+                                option.selected = true;
+                                // Trigger change event to populate form
+                                select.onchange();
+                                break;
+                            }
+                        }
+                    });
                 } else {
                     // Delete - pokaż szczegóły przed usunięciem
                     currentDeleteToken = reservation.token;
@@ -850,7 +856,7 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    alert(`Rezerwacja utworzona!\nToken: ${result.token}\n\nZapisz token - będzie potrzebny do usunięcia rezerwacji.`);
+                    alert(`Rezerwacja utworzona pomyślnie!\n\nWysłaliśmy potwierdzenie na Twój email wraz z danymi do anulowania rezerwacji.`);
                     closeModal('newReservationModal');
                     document.getElementById('newReservationForm').reset();
                     loadCalendar();
@@ -896,7 +902,13 @@
         }
 
         async function editReservation() {
-            const token = document.getElementById('editToken').value;
+            const token = document.getElementById('editReservationSelect').value;
+            
+            if (!token) {
+                alert('Wybierz rezerwację do edycji');
+                return;
+            }
+            
             const data = {
                 room_id: parseInt(document.getElementById('editRoomSelect').value),
                 date: document.getElementById('editDate').value,
@@ -934,8 +946,56 @@
             showModal('newReservationModal');
         }
 
-        function showEditReservationModal() {
+        async function showEditReservationModal() {
+            // Load active reservations for dropdown
+            await loadActiveReservations();
             showModal('editReservationModal');
+        }
+
+        async function loadActiveReservations() {
+            try {
+                const response = await fetch('/api/reservations/active');
+                const reservations = await response.json();
+                
+                const select = document.getElementById('editReservationSelect');
+                select.innerHTML = '<option value="">Wybierz rezerwację...</option>';
+                
+                reservations.forEach(reservation => {
+                    const option = document.createElement('option');
+                    option.value = reservation.token;
+                    option.textContent = reservation.display;
+                    option.dataset.reservation = JSON.stringify(reservation);
+                    select.appendChild(option);
+                });
+                
+                // Add event listener for when reservation is selected
+                select.onchange = function() {
+                    if (this.value) {
+                        const reservationData = JSON.parse(this.options[this.selectedIndex].dataset.reservation);
+                        populateEditForm(reservationData);
+                    }
+                };
+            } catch (error) {
+                console.error('Error loading active reservations:', error);
+                const select = document.getElementById('editReservationSelect');
+                select.innerHTML = '<option value="">Błąd ładowania rezerwacji</option>';
+            }
+        }
+
+        function populateEditForm(reservation) {
+            // Populate form fields with selected reservation data
+            document.getElementById('editDate').value = reservation.date;
+            document.getElementById('editStartTime').value = reservation.start_time;
+            document.getElementById('editEndTime').value = reservation.end_time;
+            
+            // Find and select the correct room
+            const roomSelect = document.getElementById('editRoomSelect');
+            for (let option of roomSelect.options) {
+                if (option.text === reservation.room_name) {
+                    option.selected = true;
+                    break;
+                }
+            }
         }
 
         function openNewReservationModal(roomId = null, date = null) {

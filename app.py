@@ -60,6 +60,42 @@ def api_reservations():
     reservations = get_reservations_between(start_date, end_date)
     return jsonify(reservations)
 
+@app.route('/api/reservations/active')
+def api_active_reservations():
+    """Get all active reservations for admin dropdown"""
+    if not session.get('is_admin', False):
+        return jsonify({'error': 'Brak uprawnień administratora'}), 403
+    
+    try:
+        from datetime import datetime, timedelta
+        from models import get_all_reservations
+        
+        # Get all reservations from today onward
+        today = datetime.now().date()
+        # Add 30 days to get upcoming reservations
+        future_date = today + timedelta(days=30)
+        
+        reservations = get_reservations_between(today.strftime('%Y-%m-%d'), future_date.strftime('%Y-%m-%d'))
+        
+        # Filter to only future/today reservations and format for dropdown
+        active_reservations = []
+        for res in reservations:
+            # Format for dropdown display
+            display_text = f"{res['user_name']} - {res['room_name']} - {res['date']} {res['start_time']}-{res['end_time']}"
+            active_reservations.append({
+                'token': res['token'],
+                'display': display_text,
+                'user_name': res['user_name'],
+                'room_name': res['room_name'],
+                'date': res['date'],
+                'start_time': res['start_time'],
+                'end_time': res['end_time']
+            })
+        
+        return jsonify(active_reservations)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/reservations', methods=['POST'])
 def api_create_reservation():
     """Create new reservation"""

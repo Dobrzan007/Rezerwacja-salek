@@ -41,25 +41,28 @@
 ### 👥 **Dla użytkowników:**
 - 📅 **Kalendarz rezerwacji** - wizualizacja dostępności sal
 - ➕ **Łatwe rezerwowanie** - formularz z walidacją konfliktów
-- 📧 **Powiadomienia email** - automatyczne potwierdzenia
+- 📧 **Powiadomienia email** - automatyczne potwierdzenia z hasłem do anulowania
 - ✏️ **Edycja rezerwacji** - możliwość modyfikacji (tylko własnych)
-- 🗑️ **Anulowanie rezerwacji** - z hasłem bezpieczeństwa
+- 🗑️ **Anulowanie rezerwacji** - z hasłem bezpieczeństwa otrzymanym w emailu
 - 📱 **Responsywny design** - działa na wszystkich urządzeniach
 
 ### 👨‍💼 **Dla administratorów:**
 - 🔐 **Panel administratora** - zaawansowane zarządzanie
+- 📋 **Dropdown edycji** - wybór rezerwacji z listy zamiast wpisywania tokenu
+- 🔔 **Powiadomienia o anulowaniu** - email gdy użytkownik usuwa swoją rezerwację
 - 👀 **Podgląd wszystkich rezerwacji** - pełny przegląd systemu
 - ✏️ **Edycja dowolnych rezerwacji** - bez ograniczeń
 - 🗑️ **Usuwanie rezerwacji** - z prawami administratora
 - 📧 **Powiadomienia o wszystkich aktywnościach** - email alerts
 - 👥 **Zarządzanie kontami** - tworzenie nowych adminów
 
-### 📧 **System email (5 typów powiadomień):**
-1. **Potwierdzenie rezerwacji** - dla użytkownika
+### 📧 **System email (6 typów powiadomień):**
+1. **Potwierdzenie rezerwacji** - dla użytkownika (z hasłem do anulowania)
 2. **Powiadomienie administratora** - o nowej rezerwacji
 3. **Powiadomienie o edycji** - dla użytkownika i admina
-4. **Powiadomienie o usunięciu** - dla użytkownika i admina
-5. **Alert o konflikcie** - ostrzeżenie przed dublowaniem
+4. **Powiadomienie o usunięciu przez admina** - dla użytkownika
+5. **Powiadomienie adminów o auto-usunięciu** - gdy użytkownik sam usuwa rezerwację
+6. **Alert o konflikcie** - ostrzeżenie przed dublowaniem
 
 ---
 

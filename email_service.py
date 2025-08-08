@@ -144,6 +144,8 @@ System Rezerwacji Sal
 def send_admin_deletion_notification(user_name: str, room_name: str, 
                                    date: str, start_time: str, end_time: str):
     """Send notification to admins about user self-deletion"""
+    print(f"Sending admin deletion notification for user: {user_name}")
+    
     subject = "Użytkownik usunął swoją rezerwację"
     body = f"""Powiadomienie dla administratorów!
 
@@ -162,6 +164,12 @@ System Rezerwacji Sal - DACPOL
     
     # Send to configured admin email
     admin_email = config.get_email_config().get('recipient_email')
+    print(f"Admin email configured as: {admin_email}")
+    
     if admin_email:
-        return send_email(admin_email, subject, body)
-    return False
+        result = send_email(admin_email, subject, body)
+        print(f"Email send result: {result}")
+        return result
+    else:
+        print("No admin email configured!")
+        return False

@@ -747,18 +747,7 @@
             if (isAdmin) {
                 if (confirm('Edytować rezerwację? (OK = Edytuj, Anuluj = Usuń)')) {
                     // Edit - otwieramy modal i pre-selectujemy rezerwację
-                    showEditReservationModal().then(() => {
-                        // Po załadowaniu dropdown, znajdź i wybierz odpowiednią rezerwację
-                        const select = document.getElementById('editReservationSelect');
-                        for (let option of select.options) {
-                            if (option.value === reservation.token) {
-                                option.selected = true;
-                                // Trigger change event to populate form
-                                select.onchange();
-                                break;
-                            }
-                        }
-                    });
+                    openEditModalWithReservation(reservation);
                 } else {
                     // Delete - pokaż szczegóły przed usunięciem
                     currentDeleteToken = reservation.token;
@@ -952,13 +941,95 @@
             showModal('editReservationModal');
         }
 
+        async function openEditModalWithReservation(reservation) {
+            // Load active reservations for dropdown
+            await loadActiveReservations();
+            
+            // Show modal first
+            showModal('editReservationModal');
+            
+            // Small delay to ensure DOM is ready
+            setTimeout(() => {
+                // Find and select the correct reservation in dropdown
+                const select = document.getElementById('editReservationSelect');
+                for (let option of select.options) {
+                    if (option.value === reservation.token) {
+                        option.selected = true;
+                        // Manually populate form with reservation data
+                        populateEditFormWithReservation(reservation);
+                        break;
+                    }
+                }
+            }, 100);
+        }
+
+        function populateEditFormWithReservation(reservation) {
+            // Populate form fields directly
+            document.getElementById('editDate').value = reservation.date;
+            document.getElementById('editStartTime').value = reservation.start_time;
+            document.getElementById('editEndTime').value = reservation.end_time;
+            document.getElementById('editUserName').value = reservation.user_name;
+            document.getElementById('editDescription').value = reservation.description || '';
+            
+            // Find and select the correct room
+            const roomSelect = document.getElementById('editRoomSelect');
+            for (let option of roomSelect.options) {
+                if (option.text === reservation.room_name) {
+                    option.selected = true;
+                    break;
+                }
+            }
+        }
+
         async function loadActiveReservations() {
             try {
-                const response = await fetch('/api/reservations/active');
-                const reservations = await response.json();
+                // First try the dedicated endpoint
+                let response = await fetch('/api/reservations/active');
+                
+                if (!response.ok) {
+                    // Fallback: use regular reservations endpoint with date range
+                    const today = new Date();
+                    const futureDate = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000)); // +30 days
+                    const startDate = today.toISOString().split('T')[0];
+                    const endDate = futureDate.toISOString().split('T')[0];
+                    
+                    response = await fetch(`/api/reservations?start_date=${startDate}&end_date=${endDate}`);
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                let reservations = await response.json();
                 
                 const select = document.getElementById('editReservationSelect');
                 select.innerHTML = '<option value="">Wybierz rezerwację...</option>';
+                
+                if (reservations.error) {
+                    select.innerHTML = '<option value="">Błąd: ' + reservations.error + '</option>';
+                    console.error('API Error:', reservations.error);
+                    return;
+                }
+                
+                // If we got regular reservations format, transform them
+                if (reservations.length > 0 && !reservations[0].display) {
+                    reservations = reservations.map(res => ({
+                        token: res.token,
+                        display: `${res.user_name} - ${res.room_name} - ${res.date} ${res.start_time}-${res.end_time}`,
+                        user_name: res.user_name,
+                        room_name: res.room_name,
+                        date: res.date,
+                        start_time: res.start_time,
+                        end_time: res.end_time,
+                        description: res.description || '',
+                        room_id: res.room_id
+                    }));
+                }
+                
+                if (reservations.length === 0) {
+                    select.innerHTML = '<option value="">Brak aktywnych rezerwacji</option>';
+                    return;
+                }
                 
                 reservations.forEach(reservation => {
                     const option = document.createElement('option');

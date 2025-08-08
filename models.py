@@ -186,17 +186,21 @@ def delete_reservation_with_password(token: str, password: str) -> bool:
     
     # Send notification to admins if deletion successful
     if ok and res_data:
+        print(f"User deletion successful, sending admin notification for user: {res_data['user_name']}")
         try:
             from email_service import send_admin_deletion_notification
-            send_admin_deletion_notification(
+            result = send_admin_deletion_notification(
                 res_data['user_name'], 
                 res_data['room_name'],
                 res_data['date'],
                 res_data['start_time'],
                 res_data['end_time']
             )
+            print(f"Admin notification email result: {result}")
         except Exception as e:
             print(f"Email sending failed: {e}")
+    else:
+        print(f"User deletion failed or no reservation data. ok={ok}, res_data={bool(res_data)}")
     
     return ok
 

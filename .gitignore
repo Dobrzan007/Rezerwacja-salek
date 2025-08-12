@@ -41,3 +41,17 @@ Thumbs.db
 # Local development
 .env
 config_local.json
+
+# Dokumentacja i README - pliki pomocnicze tylko lokalnie
+*_SETUP.md
+*_DOKUMENTACJA.md
+DOKUMENTACJA_*.md
+README_*.md
+*_README.md
+SETUP_*.md
+*_INSTRUKCJA.md
+INSTRUKCJA_*.md
+PRZEWODNIK_*.md
+*_PRZEWODNIK.md
+SZYBKI_*.md
+*_SZYBKI.md

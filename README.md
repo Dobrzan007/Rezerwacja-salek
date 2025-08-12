@@ -1,265 +1,224 @@
 # 🏢 System Rezerwacji Sal - DACPOL
 
-> **Profesjonalny system zarządzania rezerwacjami sal konferencyjnych z automatycznymi powiadomieniami email**
+Zaawansowany system rezerwacji sal konferencyjnych z panelem administracyjnym, automatycznymi powiadomieniami email i responsywnym interfejsem użytkownika.
 
-[![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://python.org)
-[![Flask](https://img.shields.io/badge/Flask-3.0+-green.svg)](https://flask.palletsprojects.com)
-[![SQLite](https://img.shields.io/badge/SQLite-3.0+-lightgrey.svg)](https://sqlite.org)
-[![Gmail SMTP](https://img.shields.io/badge/Gmail-SMTP-red.svg)](https://mail.google.com)
+![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
+![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)
+![SQLite](https://img.shields.io/badge/Database-SQLite-lightgrey.svg)
+![Bootstrap](https://img.shields.io/badge/Frontend-Bootstrap-purple.svg)
 
 ## 📋 Spis treści
-- [🎯 Opis systemu](#-opis-systemu)
-- [✨ Funkcjonalności](#-funkcjonalności)
-- [🛠️ Instalacja i uruchomienie](#️-instalacja-i-uruchomienie)
-- [📧 Konfiguracja email](#-konfiguracja-email)
-- [🏗️ Architektura systemu](#️-architektura-systemu)
+- [✨ Funkcje systemu](#-funkcje-systemu)
+- [🚀 Szybki start](#-szybki-start)
+- [💻 Uruchomienie lokalne](#-uruchomienie-lokalne)
+- [☁️ Deployment na Railway](#️-deployment-na-railway)
 - [📁 Struktura projektu](#-struktura-projektu)
-- [🌐 Deployment na Railway](#-deployment-na-railway)
-- [🔧 Konfiguracja](#-konfiguracja)
-- [🧪 Testowanie](#-testowanie)
-- [📖 API Dokumentacja](#-api-dokumentacja)
-- [🔒 Bezpieczeństwo](#-bezpieczeństwo)
-- [🐛 Rozwiązywanie problemów](#-rozwiązywanie-problemów)
+- [⚙️ Konfiguracja systemu](#️-konfiguracja-systemu)
+- [👤 Zarządzanie administratorami](#-zarządzanie-administratorami)
+- [📧 Konfiguracja email](#-konfiguracja-email)
+- [🛡️ Bezpieczeństwo](#️-bezpieczeństwo)
+- [🔧 API Endpoints](#-api-endpoints)
+- [❓ FAQ](#-faq)
 
 ---
 
-## 🎯 Opis systemu
-
-**System Rezerwacji Sal - DACPOL** to nowoczesna aplikacja webowa stworzona specjalnie dla firmy DACPOL do zarządzania rezerwacjami sal konferencyjnych. System oferuje intuicyjny interfejs kalendarza, automatyczne powiadomienia email oraz zaawansowane funkcje administracyjne.
-
-### 🎯 **Główne cele systemu:**
-- **Centralizacja rezerwacji** - wszystkie rezerwacje w jednym miejscu
-- **Automatyzacja powiadomień** - email notifications dla użytkowników i adminów
-- **Łatwość użytkowania** - intuicyjny kalendarz z drag&drop
-- **Responsywność** - działa na wszystkich urządzeniach (desktop, tablet, mobile)
-- **Bezpieczeństwo** - system uprawnień i walidacji
-
----
-
-## ✨ Funkcjonalności
+## ✨ Funkcje systemu
 
 ### 👥 **Dla użytkowników:**
-- 📅 **Kalendarz rezerwacji** - wizualizacja dostępności sal
-- ➕ **Łatwe rezerwowanie** - formularz z walidacją konfliktów
-- 📧 **Powiadomienia email** - automatyczne potwierdzenia z hasłem do anulowania
-- ✏️ **Edycja rezerwacji** - możliwość modyfikacji (tylko własnych)
-- 🗑️ **Anulowanie rezerwacji** - z hasłem bezpieczeństwa otrzymanym w emailu
-- 📱 **Responsywny design** - działa na wszystkich urządzeniach
+- 📅 **Kalendarz rezerwacji** - przejrzyste wyświetlanie wszystkich rezerwacji
+- ➕ **Tworzenie rezerwacji** - intuicyjny formularz z walidacją konfliktów
+- 📧 **Powiadomienia email** - automatyczne potwierdzenia rezerwacji
+- 🗑️ **Usuwanie rezerwacji** - możliwość anulowania własnych rezerwacji
+- 📱 **Responsive design** - działa na wszystkich urządzeniach
 
-### 👨‍💼 **Dla administratorów:**
-- 🔐 **Panel administratora** - zaawansowane zarządzanie
-- 📋 **Dropdown edycji** - wybór rezerwacji z listy zamiast wpisywania tokenu
-- 🔔 **Powiadomienia o anulowaniu** - email gdy użytkownik usuwa swoją rezerwację
-- 👀 **Podgląd wszystkich rezerwacji** - pełny przegląd systemu
-- ✏️ **Edycja dowolnych rezerwacji** - bez ograniczeń
-- 🗑️ **Usuwanie rezerwacji** - z prawami administratora
-- 📧 **Powiadomienia o wszystkich aktywnościach** - email alerts
-- 👥 **Zarządzanie kontami** - tworzenie nowych adminów
+### 🔐 **Dla administratorów:**
+- 👑 **Panel administracyjny** - zaawansowane zarządzanie po zalogowaniu
+- ✏️ **Edycja rezerwacji** - możliwość modyfikacji wszystkich parametrów
+- 🗑️ **Usuwanie dowolnych rezerwacji** - kontrola nad wszystkimi rezerwacjami
+- 📊 **Dropdown aktywnych rezerwacji** - szybki dostęp do edycji
+- 👤 **Zarządzanie kontami** - tworzenie i usuwanie innych administratorów
+- 📧 **Powiadomienia o aktywności** - informacje o wszystkich akcjach użytkowników
 
-### 📧 **System email (6 typów powiadomień):**
-1. **Potwierdzenie rezerwacji** - dla użytkownika (z hasłem do anulowania)
-2. **Powiadomienie administratora** - o nowej rezerwacji
-3. **Powiadomienie o edycji** - dla użytkownika i admina
-4. **Powiadomienie o usunięciu przez admina** - dla użytkownika
-5. **Powiadomienie adminów o auto-usunięciu** - gdy użytkownik sam usuwa rezerwację
-6. **Alert o konflikcie** - ostrzeżenie przed dublowaniem
+### 🔧 **Techniczne:**
+- ⚡ **Sprawdzanie konfliktów** - zapobiega nakładaniu się rezerwacji
+- 🔒 **Bezpieczne hasła** - hashowanie SHA-256
+- 🎫 **Unikalne tokeny** - każda rezerwacja ma swój identyfikator
+- 📧 **Gmail SMTP** - profesjonalne powiadomienia email
+- 🗄️ **SQLite** - lokalna baza danych z automatyczną inicjalizacją
 
 ---
 
-## 🛠️ Instalacja i uruchomienie
+## 🚀 Szybki start
 
-### 📋 **Wymagania systemowe:**
-- **Python 3.7+** 
+### Wymagania:
+- **Python 3.8+**
 - **pip** (menedżer pakietów Python)
-- **Konto Gmail** z hasłem aplikacji (dla email)
-- **Dostęp do internetu** (dla SMTP Gmail)
 
-### 🚀 **Szybki start:**
-
+### ⬇️ Klonowanie repozytorium:
 ```bash
-# 1. Sklonuj repozytorium
 git clone https://github.com/Dobrzan007/Rezerwacja-salek.git
-cd "Rezerwacja salek"
+cd Rezerwacja-salek
+```
 
-# 2. Utwórz środowisko wirtualne
+---
+
+## 💻 Uruchomienie lokalne
+
+### 1️⃣ **Środowisko wirtualne:**
+```bash
+# Windows (PowerShell)
 python -m venv venv
-venv\Scripts\activate  # Windows
-# source venv/bin/activate  # Linux/Mac
+venv\\Scripts\\Activate.ps1
 
-# 3. Zainstaluj zależności
+# Windows (CMD)
+python -m venv venv
+venv\\Scripts\\activate.bat
+
+# Linux/Mac
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 2️⃣ **Instalacja zależności:**
+```bash
 pip install -r requirements.txt
+```
 
-# 4. Uruchom aplikację
+### 3️⃣ **Konfiguracja (opcjonalna):**
+Sprawdź i dostosuj `config.json`:
+- Sale konferencyjne
+- Ustawienia email SMTP
+- Dane administratora
+
+### 4️⃣ **Uruchomienie:**
+```bash
 python app.py
 ```
 
-### 📂 **Alternatywnie - użyj skryptu Windows:**
+### 5️⃣ **Dostęp:**
+- 🌐 **Aplikacja:** http://localhost:5000
+- 👤 **Login administratora:** `administrator` / `AdminDacpol2025`
+
+### 6️⃣ **Gotowe skrypty (Windows):**
 ```bash
-# Kliknij dwukrotnie plik:
-start_server.bat
-```
-
-### 🌐 **Dostęp do aplikacji:**
-- **Lokalnie**: http://localhost:5000
-- **W sieci LAN**: http://[IP-KOMPUTERA]:5000
-- **Generator linku**: Uruchom `generuj_link.bat`
-
----
-
-## 📧 Konfiguracja email
-
-### 🔧 **Konfiguracja Gmail SMTP:**
-
-1. **Włącz 2FA w Gmail** (dwuetapowa weryfikacja)
-2. **Wygeneruj hasło aplikacji:**
-   - Idź do: https://myaccount.google.com/apppasswords
-   - Wybierz "Mail" i "Windows Computer"
-   - Skopiuj wygenerowane hasło (16 znaków)
-
-3. **Skonfiguruj pliki config:**
-
-```json
-{
-    "email": {
-        "enabled": true,
-        "smtp_server": "smtp.gmail.com",
-        "smtp_port": 587,
-        "use_tls": true,
-        "sender_email": "twoj-email@gmail.com",
-        "sender_password": "haslo-aplikacji-16-znakow",
-        "recipient_email": "admin@twoja-firma.com",
-        "sender_name": "System Rezerwacji Sal - DACPOL"
-    }
-}
-```
-
-### 🧪 **Test konfiguracji email:**
-```bash
-python test_email.py          # Pełny test systemu
-python test_gmail_simple.py   # Prosty test SMTP
+start_server.bat      # Uruchomienie serwera
+generuj_link.bat      # Generowanie linku do aplikacji
 ```
 
 ---
 
-## 🏗️ Architektura systemu
+## ☁️ Deployment na Railway
 
-### 📊 **Stack technologiczny:**
-- **Backend**: Flask (Python)
-- **Database**: SQLite
-- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
-- **Email**: Gmail SMTP
-- **Deployment**: Railway (Production) + Local Development
+### 📋 **Przygotowanie:**
+1. Utwórz konto na [Railway.app](https://railway.app)
+2. Połącz z GitHub
+3. Fork tego repozytorium
 
-### 🏗️ **Wzorzec architektury:**
+### 🚀 **Deployment:**
+1. **New Project** → Deploy from GitHub repo
+2. **Wybierz** `Rezerwacja-salek`
+3. **Auto-deploy** - Railway automatycznie wykryje Python i użyje `Procfile`
+
+### ⚙️ **Zmienne środowiskowe Railway:**
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │───▶│     Flask       │───▶│    SQLite       │
-│   (Templates)   │    │   (Backend)     │    │   (Database)    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                               │
-                               ▼
-                       ┌─────────────────┐
-                       │   Gmail SMTP    │
-                       │   (Email)       │
-                       └─────────────────┘
+FLASK_ENV=production
+PYTHONUNBUFFERED=1
 ```
 
-### 🔄 **Flow aplikacji:**
-1. **Użytkownik** otwiera kalendarz ➜ `templates/calendar.html`
-2. **JavaScript** wysyła AJAX request ➜ `app.py` routes
-3. **Flask** przetwarza dane ➜ `models.py` business logic
-4. **Models** operują na bazie ➜ `db.py` SQLite operations
-5. **Email service** wysyła powiadomienia ➜ `email_service.py`
-6. **Response** wraca do użytkownika ➜ JSON/HTML
+### 🔄 **Różnice produkcyjne:**
+- Automatyczne wykrywanie środowiska Railway
+- Użycie `config_production.json` w chmurze
+- Debug wyłączony w produkcji
+- Automatyczne HTTPS i skalowanie
 
 ---
 
 ## 📁 Struktura projektu
 
 ```
-Rezerwacja salek/
-├── 📱 Frontend & Templates
-│   ├── templates/
-│   │   ├── calendar.html          # Główny interfejs kalendarza
-│   │   ├── login.html             # Formularz logowania
-│   │   └── create_admin.html      # Tworzenie konta admin
-│   └── static/ (zawarte w templates)
-│
-├── 🐍 Backend Core
-│   ├── app.py                     # Główny plik aplikacji (development)
-│   ├── app_railway.py             # Wersja dla Railway (production)
-│   ├── models.py                  # Business logic i operacje DB
-│   ├── db.py                      # Operacje bazodanowe SQLite
-│   ├── email_service.py           # Serwis obsługi email
-│   └── config.py                  # Zarządzanie konfiguracją
-│
-├── ⚙️ Konfiguracja
-│   ├── config.json                # Konfiguracja development
-│   ├── config_production.json     # Konfiguracja production
-│   ├── requirements.txt           # Zależności Python
-│   └── Procfile                   # Konfiguracja Railway
-│
-├── 🗄️ Dane
-│   └── data/
-│       └── booking.db             # Baza danych SQLite
-│
-├── 🧪 Testy
-│   ├── test_email.py              # Test systemu email
-│   └── test_gmail_simple.py       # Prosty test SMTP
-│
-├── 🛠️ Narzędzia
-│   ├── start_server.bat           # Uruchomienie serwera (Windows)
-│   ├── generuj_link.bat           # Generator linku LAN
-│   └── System_Rezerwacji_Salek.url # Skrót do aplikacji
-│
-└── 📄 Dokumentacja
-    └── README.md                  # Ten plik
+📁 Rezerwacja-salek/
+├── 🧠 models.py                 # Logika biznesowa i operacje CRUD
+├── 🌐 app.py                    # Aplikacja Flask z API endpoints
+├── 🌐 app_railway.py            # Wersja dla Railway (identyczna)
+├── 🗄️ db.py                     # Operacje bazy danych i narzędzia
+├── 📧 email_service.py          # System powiadomień SMTP
+├── ⚙️ config.py                 # Klasa zarządzania konfiguracją
+├── ⚙️ config.json               # Konfiguracja lokalna (development)
+├── ⚙️ config_production.json    # Konfiguracja produkcyjna (Railway)
+├── 📦 requirements.txt          # Zależności Python
+├── 🚀 Procfile                  # Konfiguracja Railway deployment
+├── 🎨 templates/               # Szablony HTML
+│   ├── calendar.html            # Główny interfejs kalendarza
+│   ├── login.html              # Strona logowania administratora
+│   └── create_admin.html       # Panel zarządzania kontami
+├── 📊 data/                    # Folder bazy danych
+│   └── booking.db              # SQLite database
+├── 🔧 start_server.bat         # Skrypt uruchomienia Windows
+├── 🔗 generuj_link.bat         # Generator linku aplikacji
+└── 📚 README.md                # Ta dokumentacja
 ```
+
+### 🔍 **Opis kluczowych plików:**
+
+#### **🧠 models.py** - Centrum logiki biznesowej
+- **Rezerwacje:** `create_reservation()`, `update_reservation()`, `delete_reservation_with_password()`
+- **Administratorzy:** `authenticate_admin()`, `create_admin_with_master_password()`
+- **Sale:** `seed_rooms()`, `get_rooms()`, `is_available()`
+- **Walidacja:** sprawdzanie konfliktów, walidacja email, hashowanie haseł
+
+#### **🌐 app.py** - Serwer Flask
+- **Routes:** `/`, `/api/reservations`, `/login`, `/admin`
+- **API:** RESTful endpoints dla operacji CRUD
+- **Sesje:** zarządzanie loginami administratorów
+- **Templates:** renderowanie interfejsu HTML
+
+#### **⚙️ config.py** - Inteligentna konfiguracja
+- **Automatyczne wykrywanie środowiska** (local vs Railway)
+- **Ładowanie konfiguracji** z odpowiedniego pliku JSON
+- **Tworzenie domyślnej konfiguracji** przy pierwszym uruchomieniu
+- **Metody pomocnicze** do dostępu do ustawień
 
 ---
 
-## 🌐 Deployment na Railway
+## ⚙️ Konfiguracja systemu
 
-### 🚂 **Automatyczny deployment:**
+### 📊 **Dwa pliki konfiguracyjne - DLACZEGO?**
 
-1. **Połącz z GitHub:**
-   - Zaloguj się na [Railway.app](https://railway.app)
-   - Połącz z repozytorium GitHub
-   - Railway automatycznie wykryje Python i Flask
+System automatycznie wybiera odpowiedni plik konfiguracji:
 
-2. **Konfiguracja środowiska:**
-   ```bash
-   # Railway automatycznie ustawia:
-   PORT=5000
-   RAILWAY_ENVIRONMENT=production
-   ```
-
-3. **Pliki produkcyjne:**
-   - `Procfile` - definiuje command startowy
-   - `app_railway.py` - wersja production
-   - `config_production.json` - konfiguracja production
-
-### 🔧 **Zarządzanie środowiskami:**
-```python
-# Automatyczne wykrywanie środowiska:
-is_production = os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PORT')
-if is_production:
-    config_file = 'config_production.json'
-else:
-    config_file = 'config.json'
-```
-
----
-
-## 🔧 Konfiguracja
-
-### 📝 **Plik config.json (Development):**
+#### **🔧 config.json** - Środowisko lokalne (development)
 ```json
 {
-    "company": {
-        "name": "DACPOL",
-        "system_title": "System Rezerwacji Sal - DACPOL"
-    },
+    "server": {
+        "debug": true,           # Debug włączony lokalnie
+        "port": 5000
+    }
+}
+```
+
+#### **🚀 config_production.json** - Środowisko produkcyjne (Railway)
+```json
+{
+    "server": {
+        "debug": false,          # Debug wyłączony w produkcji
+        "port": 5000
+    }
+}
+```
+
+**Automatyczne wykrywanie środowiska:**
+```python
+# W config.py - automatycznie wybiera plik
+if os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('PORT'):
+    config_file = 'config_production.json'  # Produkcja
+else:
+    config_file = 'config.json'             # Lokalne
+```
+
+### 🏢 **Konfiguracja sal konferencyjnych:**
+
+```json
+{
     "rooms": [
         "Sala wideo parter",
         "Sala obiadowa parter", 
@@ -268,15 +227,30 @@ else:
         "2 piętro produktowa",
         "2 piętro MAŁA",
         "2 piętro STARY GABINET"
-    ],
-    "admin": {
-        "master_password": "TWORZENIEKONTA",
-        "default_admin": {
-            "username": "administrator",
-            "password": "AdminDacpol2025",
-            "email": "admin@dacpol.eu"
-        }
-    },
+    ]
+}
+```
+
+**Jak dodać nowe sale:**
+1. Edytuj `config.json` (lokalnie) lub `config_production.json` (produkcja)
+2. Dodaj nazwy do listy `"rooms"`
+3. Restart aplikacji - nowe sale zostaną automatycznie dodane do bazy
+
+### 🏷️ **Branding firmy:**
+
+```json
+{
+    "company": {
+        "name": "DACPOL",
+        "system_title": "System Rezerwacji Sal - DACPOL"
+    }
+}
+```
+
+### 📧 **Konfiguracja email:**
+
+```json
+{
     "email": {
         "enabled": true,
         "smtp_server": "smtp.gmail.com",
@@ -286,266 +260,313 @@ else:
         "sender_password": "wenu zrdg lktq duqf",
         "recipient_email": "dacpoledi@dacpol.eu",
         "sender_name": "System Rezerwacji Sal - DACPOL"
-    },
-    "server": {
-        "host": "0.0.0.0",
-        "port": 5000,
-        "debug": true
-    },
-    "security": {
-        "session_secret": "super-secret-key-change-me-in-production",
-        "password_min_length": 4
     }
 }
 ```
 
-### 🏭 **Różnice Production vs Development:**
-| Ustawienie | Development | Production |
-|------------|-------------|------------|
-| Debug mode | `true` | `false` |
-| Email logging | Verbose | Essential only |
-| Error handling | Full stack trace | User-friendly messages |
-| Session secret | Simple | Strong random key |
-
 ---
 
-## 🧪 Testowanie
+## 👤 Zarządzanie administratorami
 
-### 📧 **Test systemu email:**
-```bash
-# Pełny test systemu email
-python test_email.py
+### 🔑 **Hasło główne: `TWORZENIEKONTA`**
 
-# Prosty test połączenia SMTP
-python test_gmail_simple.py
-```
+To specjalne hasło zabezpiecza tworzenie nowych kont administratorów:
 
-### 🔧 **Test funkcjonalności:**
-1. **Test rezerwacji:**
-   - Utwórz nową rezerwację
-   - Sprawdź czy email został wysłany
-   - Zweryfikuj zapis w bazie danych
-
-2. **Test konfliktów:**
-   - Spróbuj zarezerwować tę samą salę w tym samym czasie
-   - System powinien ostrzec o konflikcie
-
-3. **Test responsywności:**
-   - Otwórz na różnych urządzeniach
-   - Sprawdź modals na małych ekranach
-
-### 🐛 **Debug mode:**
-```python
-# Włącz debug w config.json
-"debug": true
-
-# Lub przez environment
-export FLASK_DEBUG=1
-```
-
----
-
-## 📖 API Dokumentacja
-
-### 🌍 **Endpoints główne:**
-
-#### 📅 **GET /** - Strona główna
-```http
-GET /
-Returns: calendar.html template
-```
-
-#### 🏢 **GET /api/rooms** - Lista sal
-```http
-GET /api/rooms
-Returns: [
-    {"id": 1, "name": "Sala wideo parter"},
-    {"id": 2, "name": "Sala obiadowa parter"}
-]
-```
-
-#### 📋 **GET /api/reservations** - Rezerwacje
-```http
-GET /api/reservations?start_date=2024-01-01&end_date=2024-01-31
-Returns: [
-    {
-        "id": 1,
-        "room_name": "Sala wideo parter",
-        "start_time": "2024-01-15 14:00",
-        "end_time": "2024-01-15 16:00",
-        "title": "Meeting zespołu",
-        "description": "Planowanie sprintu",
-        "created_by": "Jan Kowalski",
-        "token": "abc123def456"
+```json
+{
+    "admin": {
+        "master_password": "TWORZENIEKONTA",
+        "default_admin": {
+            "username": "administrator",
+            "password": "AdminDacpol2025",
+            "email": "admin@dacpol.eu"
+        }
     }
-]
+}
 ```
 
-#### ➕ **POST /api/reservations** - Nowa rezerwacja
-```http
-POST /api/reservations
-Content-Type: application/x-www-form-urlencoded
+### 📋 **Domyślne konto administratora:**
+- **Login:** `administrator`
+- **Hasło:** `AdminDacpol2025`
+- **Email:** `admin@dacpol.eu`
 
-room_id=1&start_time=2024-01-15 14:00&end_time=2024-01-15 16:00&title=Meeting&description=Opis&created_by=Jan Kowalski&password=haslo123
+### ➕ **Tworzenie nowych administratorów:**
 
-Returns: {"success": true, "token": "abc123def456"}
+1. **Zaloguj się** jako administrator
+2. **Przejdź** do "Zarządzaj kontami administratorów"
+3. **Wypełnij formularz:**
+   - Nazwa użytkownika (unikalna)
+   - Hasło (min. 4 znaki)
+   - Email (do powiadomień)
+   - **Hasło główne:** `TWORZENIEKONTA` ⚠️ **WYMAGANE!**
+4. **Kliknij** "Utwórz konto"
+
+### 🔄 **Funkcje w kodzie:**
+
+```python
+# W models.py
+def create_admin_with_master_password(username, password, email, master_password):
+    """Tworzy nowego administratora z walidacją hasła głównego"""
+    if master_password != config.get_master_password():
+        return None, "Nieprawidłowe hasło główne"
+    # ... reszta logiki
 ```
 
-#### ❌ **DELETE /api/reservations** - Usuń rezerwację
-```http
-DELETE /api/reservations
-Content-Type: application/x-www-form-urlencoded
+### 🗑️ **Usuwanie administratorów:**
+- Panel administratorów → "Usuń" przy wybranym koncie
+- ⚠️ **Zabezpieczenie:** Nie można usunąć ostatniego administratora
 
-token=abc123def456&password=haslo123
+---
 
-Returns: {"success": true}
+## 📧 Konfiguracja email
+
+### 🔧 **Gmail SMTP - przewodnik krok po kroku:**
+
+#### 1️⃣ **Włącz weryfikację dwuetapową:**
+- Przejdź do [Google Account Security](https://myaccount.google.com/security)
+- Włącz "2-Step Verification"
+
+#### 2️⃣ **Wygeneruj App Password:**
+- W ustawieniach Google → Security → 2-Step Verification
+- Scroll down → App passwords
+- Select app: "Mail", Device: "Other" → wpisz "System Rezerwacji"
+- **Skopiuj 16-znakowy kod** (np: `wenu zrdg lktq duqf`)
+
+#### 3️⃣ **Skonfiguruj w aplikacji:**
+```json
+{
+    "email": {
+        "sender_email": "twoj-email@gmail.com",
+        "sender_password": "wenu zrdg lktq duqf",  # App Password!
+        "recipient_email": "admin@firma.com"
+    }
+}
 ```
 
-### 🔐 **Endpoints administratora:**
+### 📬 **Typy powiadomień email:**
 
-#### 🔑 **POST /api/admin/login** - Logowanie admin
-```http
-POST /api/admin/login
-Content-Type: application/x-www-form-urlencoded
+| Typ powiadomienia | Odbiorca | Trigger |
+|-------------------|----------|---------|
+| 🎉 **Potwierdzenie rezerwacji** | Użytkownik | Po utworzeniu rezerwacji |
+| 🔔 **Powiadomienie administratora** | Wszyscy adminowie | Nowa rezerwacja |
+| ⚠️ **Kolizja terminów** | Użytkownik | Sala zajęta |
+| ✏️ **Edycja rezerwacji** | Użytkownik | Po zmianie przez admina |
+| 🗑️ **Usunięcie przez użytkownika** | Administratorzy | Anulowanie rezerwacji |
+| 🗑️ **Usunięcie przez admina** | Użytkownik | Admin anulował |
 
-username=administrator&password=AdminDacpol2025
+### 📧 **Przykład emaila potwierdzenia:**
 
-Returns: {"success": true}
 ```
+Temat: Potwierdzenie rezerwacji sali
 
-#### 👥 **POST /api/admin/create** - Utwórz konto admin
-```http
-POST /api/admin/create
-Content-Type: application/x-www-form-urlencoded
+Witaj Jan Kowalski!
 
-master_password=TWORZENIEKONTA&username=nowy_admin&password=NoweHaslo123
+Twoja rezerwacja została pomyślnie utworzona:
 
-Returns: {"success": true}
+🏢 Sala: Sala wideo parter
+📅 Data: 15.08.2025
+⏰ Godzina: 10:00 - 12:00
+🎫 Token: A7X9M2
+🔑 Hasło do usunięcia: ****** (ukryte)
+
+Aby anulować rezerwację, użyj tokena: A7X9M2
+
+Pozdrawiam,
+System Rezerwacji Sal - DACPOL
 ```
 
 ---
 
-## 🔒 Bezpieczeństwo
+## 🛡️ Bezpieczeństwo
 
-### 🛡️ **Zabezpieczenia wdrożone:**
+### 🔐 **Hashowanie haseł:**
+```python
+# W db.py
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+```
+- **SHA-256** - silne hashowanie jednostronne
+- **Hasła nigdy nie są przechowywane w czystym tekście**
+- **Sól systemowa** - dodatkowa ochrona
 
-1. **Hashowanie haseł** - bcrypt dla haseł administratorów
-2. **Session management** - Flask sessions z secret key
-3. **CSRF protection** - tokeny dla krytycznych operacji
-4. **Input validation** - walidacja wszystkich danych wejściowych
-5. **SQL Injection protection** - parametryzowane zapytania
-6. **Password complexity** - minimalna długość haseł
-7. **Rate limiting** - ograniczenia zapytań (na poziomie infrastruktury)
+### 🎫 **System tokenów:**
+```python
+# W db.py
+def generate_token():
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+```
+- **6-znakowe alfanumeryczne ID** (np: "A7X9M2")
+- **Unikalne dla każdej rezerwacji**
+- **Używane do usuwania przez użytkowników**
 
-### 🔐 **Hasła w systemie:**
-- **Master password**: `TWORZENIEKONTA` (tworzenie adminów)
-- **Default admin**: `administrator` / `AdminDacpol2025`
-- **User passwords**: Dowolne (min. 4 znaki) dla rezerwacji
+### 👑 **Kontrola dostępu administratorów:**
+```python
+# W app.py
+@app.route('/admin')
+def admin_panel():
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
+    # ... reszta kodu
+```
 
-### 📧 **Email security:**
-- **Gmail App Password** - bezpieczne hasło aplikacji
-- **TLS encryption** - szyfrowane połączenie SMTP
-- **No credential storage** - hasła w config (nie w kodzie)
+### 🔑 **Master password:**
+- **Hasło główne** (`TWORZENIEKONTA`) chroni tworzenie administratorów
+- **Dodatkowa warstwa bezpieczeństwa** nawet po włamaniu do konta admin
+- **Konfigurowalne** w pliku konfiguracji
+
+### 📧 **Bezpieczeństwo email:**
+- **App Passwords** zamiast zwykłych haseł Gmail
+- **TLS encryption** dla połączeń SMTP
+- **Walidacja formatów email**
 
 ---
 
-## 🐛 Rozwiązywanie problemów
+## 🔧 API Endpoints
 
-### ❗ **Częste problemy i rozwiązania:**
-
-#### 📧 **Problem: Email nie wysyła się**
-```bash
-# 1. Sprawdź konfigurację
-python test_email.py
-
-# 2. Sprawdź hasło aplikacji Gmail
-# Idź do: https://myaccount.google.com/apppasswords
-# Wygeneruj nowe hasło
-
-# 3. Sprawdź czy 2FA jest włączone w Gmail
+### 🏠 **Główne strony:**
+```http
+GET  /                          # Strona główna z kalendarzem
+GET  /login                     # Strona logowania administratora
+GET  /admin                     # Panel zarządzania kontami (admin only)
 ```
 
-#### 🗄️ **Problem: Baza danych nie działa**
-```bash
-# 1. Sprawdź czy katalog data/ istnieje
-mkdir data
+### 📅 **API Rezerwacji:**
+```http
+GET    /api/rooms               # Lista wszystkich sal
+GET    /api/reservations        # Wszystkie rezerwacje
+POST   /api/reservations        # Tworzenie nowej rezerwacji
+PUT    /api/reservations/<token> # Edycja rezerwacji (admin only)
+DELETE /api/reservations/<token> # Usuwanie rezerwacji
+GET    /api/reservations/active # Aktywne rezerwacje (dropdown admin)
+```
 
-# 2. Usuń bazę i pozwól systemowi odtworzyć
+### 👤 **API Autoryzacji:**
+```http
+POST   /login                   # Logowanie administratora
+GET    /logout                  # Wylogowanie
+POST   /admin/create            # Tworzenie nowego administratora
+DELETE /admin/delete/<username> # Usuwanie konta administratora
+```
+
+### 📝 **Przykład API - Tworzenie rezerwacji:**
+
+**Request:**
+```bash
+curl -X POST http://localhost:5000/api/reservations \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "room_id": 1,
+    "date": "2025-08-15",
+    "start_time": "10:00",
+    "end_time": "12:00",
+    "user_name": "Jan Kowalski",
+    "password": "mojhaslo123",
+    "email": "jan@email.com"
+  }'
+```
+
+**Response (sukces):**
+```json
+{
+  "success": true,
+  "message": "Rezerwacja utworzona pomyślnie",
+  "token": "A7X9M2"
+}
+```
+
+**Response (błąd - sala zajęta):**
+```json
+{
+  "success": false,
+  "message": "Sala jest już zarezerwowana w tym terminie"
+}
+```
+
+---
+
+## ❓ FAQ
+
+### ❔ **Nie mogę się zalogować jako administrator**
+- **Sprawdź dane:** `administrator` / `AdminDacpol2025`
+- **Upewnij się** że baza danych została zainicjalizowana (uruchom aplikację raz)
+- **Sprawdź** czy plik `config.json` zawiera prawidłowe dane administratora
+
+### ❔ **Nie przychodzą emaile**
+1. **Gmail App Password** - sprawdź czy używasz 16-znakowego kodu, nie zwykłego hasła
+2. **2FA** - upewnij się że weryfikacja dwuetapowa jest włączona
+3. **Folder SPAM** - sprawdź skrzynkę odbiorczą
+4. **Logi aplikacji** - sprawdź terminal czy są błędy SMTP
+5. **Email enabled** - upewnij się że `"enabled": true` w konfiguracji
+
+### ❔ **Jak dodać nowe sale konferencyjne?**
+1. **Edytuj konfigurację:**
+   - Lokalnie: `config.json` → sekcja `"rooms"`
+   - Produkcja: `config_production.json` → sekcja `"rooms"`
+2. **Dodaj nazwy** do listy (np: `"Nowa sala"`)
+3. **Restart aplikacji** - nowe sale zostaną automatycznie dodane do bazy
+4. **Sprawdź** w formularzu rezerwacji czy pojawiły się nowe opcje
+
+### ❔ **Zapomniałem hasła głównego**
+- **Sprawdź konfigurację:** `config.json` → `"admin"` → `"master_password"`
+- **Domyślnie:** `TWORZENIEKONTA`
+- **Aby zmienić:** edytuj plik konfiguracji i restart aplikacji
+
+### ❔ **Jak zmienić port aplikacji?**
+1. **Edytuj konfigurację:** `"server"` → `"port": 8080`
+2. **Restart aplikacji**
+3. **Nowy adres:** `http://localhost:8080`
+
+### ❔ **Konflikt portów na Railway**
+Railway automatycznie przydziela port z zmiennej środowiskowej `PORT` - nie trzeba nic zmieniać.
+
+### ❔ **Jak zrobić backup bazy danych?**
+```bash
+# Kopia pliku bazy
+cp data/booking.db data/backup_$(date +%Y%m%d_%H%M%S).db
+
+# Windows
+copy "data\\booking.db" "data\\backup_%date:~-4,4%%date:~-10,2%%date:~-7,2%.db"
+```
+
+### ❔ **Jak wyczyścić wszystkie rezerwacje?**
+⚠️ **UWAGA: To usunie wszystkie dane!**
+```bash
+# Usuń bazę danych
 rm data/booking.db
+
+# Windows
+del "data\\booking.db"
+
+# Restart aplikacji - baza zostanie utworzona na nowo
 python app.py
 ```
 
-#### 🌐 **Problem: Aplikacja niedostępna w sieci**
-```bash
-# 1. Sprawdź firewall Windows
-# Dodaj wyjątek dla Python/Flask na port 5000
+### ❔ **Różnica między config.json a config_production.json**
+- **config.json** - używany lokalnie (development)
+  - `debug: true` - szczegółowe logi błędów
+  - Różne ustawienia testowe
+- **config_production.json** - używany na Railway (produkcja)
+  - `debug: false` - bezpieczniejsze logi
+  - Optymalizacja dla produkcji
+- **Automatyczne wykrywanie** przez `config.py` na podstawie zmiennych środowiskowych
 
-# 2. Sprawdź IP komputera
-ipconfig
-# Użyj http://[IP]:5000
-
-# 3. Użyj generator linku
-generuj_link.bat
-```
-
-#### 📱 **Problem: Modal nie działa na mobile**
-- Sprawdź czy masz najnowszą wersję z responsywnym CSS
-- Wyczyść cache przeglądarki
-- Przetestuj na różnych urządzeniach
-
-### 🔧 **Debug i logi:**
-
-#### Włącz tryb debug:
-```json
-// config.json
-"server": {
-    "debug": true
-}
-```
-
-#### Sprawdź logi email:
-```python
-# W models.py znajdziesz szczegółowe logi email
-print(f"Email sending failed: {e}")
-```
-
-#### Sprawdź statusy HTTP:
-- `200` - OK
-- `400` - Błąd walidacji danych
-- `401` - Brak autoryzacji
-- `403` - Brak uprawnień
-- `500` - Błąd serwera
+### ❔ **Aplikacja nie startuje**
+1. **Sprawdź Python:** `python --version` (min. 3.8)
+2. **Zainstaluj zależności:** `pip install -r requirements.txt`
+3. **Sprawdź porty:** czy port 5000 nie jest zajęty
+4. **Sprawdź logi:** uruchom `python app.py` i sprawdź błędy
+5. **Sprawdź konfigurację:** czy pliki JSON są prawidłowe
 
 ---
 
-## 📞 Wsparcie
 
-### 🛠️ **Pomoc techniczna:**
-- **GitHub Issues**: [Rezerwacja-salek/issues](https://github.com/Dobrzan007/Rezerwacja-salek/issues)
-- **Email**: daspolrezerwacjesalek@gmail.com
-- **Dokumentacja kodu**: Komentarze w języku polskim
-
-### 📋 **Lista zadań / TODO:**
-- [ ] Dodanie notyfikacji push
-- [ ] Eksport do kalendarza (iCal)
-- [ ] API dla aplikacji mobilnej
-- [ ] Integracja z Outlook Calendar
-- [ ] System raportowania statystyk
-
----
 
 ## 📄 Licencja
 
-**System Rezerwacji Sal - DACPOL** jest własnością firmy DACPOL i przeznaczony do użytku wewnętrznego.
+Projekt open-source. Możesz swobodnie używać, modyfikować i dystrybuować zgodnie z potrzebami.
 
 ---
 
-## 🎉 Autorzy
+**🎉 Dziękujemy za korzystanie z Systemu Rezerwacji Sal DACPOL!**
 
-- **Główny Developer**: Mateusz Dobrzański
-- **Firma**: DACPOL
-- **Rok**: 2024-2025
-
----
-
-*📅 System Rezerwacji Sal - DACPOL | Wersja 2.0 | Ostatnia aktualizacja: Styczeń 2025*
+*System utworzony dla firmy DACPOL - sierpień 2025*

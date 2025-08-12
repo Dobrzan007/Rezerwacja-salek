@@ -1,116 +1,329 @@
+"""
+MODELS.PY - GŁÓWNE FUNKCJE BIZNESOWE APLIKACJI
+==============================================
+
+Ten plik zawiera wszystkie funkcje odpowiedzialne za:
+- Zarządzanie kontami administratorów 
+- Tworzenie, edycję i usuwanie rezerwacji
+- Pobieranie danych z bazy
+- Wysyłanie emaili powiadomień
+- Sprawdzanie dostępności sal
+
+Importy:
+- db: funkcje bazy danych (połączenie, hashowanie, tokeny)
+- config: konfiguracja aplikacji
+- datetime: operacje na datach
+"""
+
 from db import get_connection, hash_password, generate_token
 from config import config
 import datetime
 
-# Admins
+# ========================================
+# ZARZĄDZANIE KONTAMI ADMINISTRATORÓW
+# ========================================
 
 def create_admin(username: str, password: str) -> int:
-    conn = get_connection(); cur = conn.cursor()
+    """
+    PROSTA FUNKCJA TWORZENIA ADMINISTRATORA
+    
+    Ta funkcja tworzy podstawowe konto administratora bez dodatkowych sprawdzeń.
+    Używana jest do tworzenia domyślnego konta przy starcie aplikacji.
+    
+    Parametry:
+    - username: nazwa użytkownika (np. "admin")
+    - password: hasło w czystym tekście (zostanie zahashowane)
+    
+    Zwraca: ID utworzonego administratora
+    """
+    # Nawiązujemy połączenie z bazą danych i tworzymy kursor
+    conn = get_connection()
+    cur = conn.cursor()
+    
+    # Wstawiamy nowego admina do tabeli (INSERT OR IGNORE = nie duplikuj jeśli już istnieje)
     cur.execute("INSERT OR IGNORE INTO admins (username, password_hash) VALUES (?, ?)",
-                (username, hash_password(password)))
-    conn.commit(); aid = cur.lastrowid; conn.close(); return aid
+                (username, hash_password(password)))  # hash_password() szyfruje hasło
+    
+    # Zatwierdzamy zmiany, pobieramy ID nowego rekordu i zamykamy połączenie
+    conn.commit()
+    aid = cur.lastrowid  # ID ostatnio wstawionego rekordu
+    conn.close()
+    return aid
 
 
 def create_admin_with_master_password(username: str, password: str, email: str, master_password: str) -> bool:
-    """Create admin account with master password verification"""
+    """
+    BEZPIECZNA FUNKCJA TWORZENIA ADMINISTRATORA Z WERYFIKACJĄ
+    
+    Ta funkcja tworzy konto administratora z dodatkowymi zabezpieczeniami:
+    - Wymaga podania master password (hasła głównego)
+    - Sprawdza czy email jest prawidłowy
+    - Sprawdza czy użytkownik już nie istnieje
+    
+    Parametry:
+    - username: nazwa użytkownika do logowania
+    - password: hasło do logowania  
+    - email: adres email (na ten adres będą wysyłane powiadomienia)
+    - master_password: hasło główne (z pliku config.py)
+    
+    Zwraca: True jeśli udało się utworzyć konto, False w przeciwnym razie
+    Wyjątki: ValueError z opisem błędu jeśli coś poszło nie tak
+    """
+    # SPRAWDZENIE 1: Czy master password jest prawidłowy
     if master_password != config.get_master_password():
         raise ValueError("Nieprawidłowe hasło główne")
     
+    # SPRAWDZENIE 2: Czy email jest prawidłowy (zawiera @)
     if not email or "@" not in email:
         raise ValueError("Podaj prawidłowy email")
     
-    conn = get_connection(); cur = conn.cursor()
-    # Check if username already exists
+    # Połączenie z bazą danych
+    conn = get_connection()
+    cur = conn.cursor()
+    
+    # SPRAWDZENIE 3: Czy użytkownik o tej nazwie już istnieje
     cur.execute("SELECT id FROM admins WHERE username=?", (username,))
-    if cur.fetchone():
+    if cur.fetchone():  # Jeśli znaleziono rekord
         conn.close()
         raise ValueError("Użytkownik już istnieje")
     
+    # Wszystko w porządku - tworzymy nowego administratora
     cur.execute("INSERT INTO admins (username, password_hash, email) VALUES (?, ?, ?)",
                 (username, hash_password(password), email))
-    conn.commit(); aid = cur.lastrowid; conn.close()
-    return aid > 0
+    
+    # Zatwierdzamy zmiany i sprawdzamy czy się udało
+    conn.commit()
+    aid = cur.lastrowid  # ID nowo utworzonego administratora
+    conn.close()
+    return aid > 0  # Zwracamy True jeśli ID > 0 (sukces)
 
 
 def authenticate_admin(username: str, password: str) -> bool:
-    conn = get_connection(); cur = conn.cursor()
+    """
+    FUNKCJA LOGOWANIA ADMINISTRATORA
+    
+    Sprawdza czy podane dane logowania (username + password) są prawidłowe.
+    Używana przy logowaniu do panelu administratora.
+    
+    Parametry:
+    - username: nazwa użytkownika
+    - password: hasło w czystym tekście
+    
+    Zwraca: True jeśli dane są prawidłowe, False w przeciwnym razie
+    
+    Jak to działa:
+    1. Pobiera zahashowane hasło z bazy dla danego username
+    2. Porównuje hash z bazy z hashem wprowadzonego hasła
+    3. Jeśli się zgadzają - logowanie udane
+    """
+    # Pobieramy zahashowane hasło z bazy danych
+    conn = get_connection()
+    cur = conn.cursor()
     cur.execute("SELECT password_hash FROM admins WHERE username=?", (username,))
-    row = cur.fetchone(); conn.close()
+    row = cur.fetchone()  # Pobieramy pierwszy (i jedyny) wynik
+    conn.close()
+    # Sprawdzamy czy znaleźliśmy użytkownika i czy hasło się zgadza
     return bool(row and row['password_hash'] == hash_password(password))
 
 
 def get_admin_emails() -> list:
-    """Get all admin emails for notifications"""
-    conn = get_connection(); cur = conn.cursor()
+    """
+    POBIERANIE ADRESÓW EMAIL ADMINISTRATORÓW
+    
+    Ta funkcja pobiera wszystkie adresy email administratorów z bazy danych.
+    Używana do wysyłania powiadomień o rezerwacjach, edycjach, usunięciach.
+    
+    Zwraca: Lista adresów email administratorów
+    
+    Logika:
+    1. Pobiera wszystkie niepuste adresy email z tabeli admins
+    2. Jeśli nie ma żadnych adresów w bazie, używa domyślnego z config.py
+    """
+    conn = get_connection()
+    cur = conn.cursor()
+    
+    # Pobieramy wszystkie niepuste adresy email administratorów
     cur.execute("SELECT email FROM admins WHERE email IS NOT NULL AND email != ''")
-    emails = [row['email'] for row in cur.fetchall()]
+    emails = [row['email'] for row in cur.fetchall()]  # Lista comprehension - tworzy listę emaili
     conn.close()
     
-    # If no admin emails found, use config recipient
+    # Jeśli nie ma żadnych adresów email w bazie, użyj domyślnego z konfiguracji
     if not emails:
-        recipient_email = config.get('email', 'recipient_email')
+        recipient_email = config.get('email', 'recipient_email')  # Pobierz z config.py
         if recipient_email:
             emails = [recipient_email]
     
     return emails
 
-# Rooms
+
+# ========================================
+# ZARZĄDZANIE SALAMI KONFERENCYJNYMI
+# ========================================
 
 def seed_rooms(names: list):
-    conn = get_connection(); cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) c FROM rooms"); count = cur.fetchone()['c']
+    """
+    INICJALIZACJA SAL KONFERENCYJNYCH W BAZIE DANYCH
+    
+    Ta funkcja jest wywoływana przy starcie aplikacji i zapewnia,
+    że w bazie danych są wszystkie sale zdefiniowane w config.py
+    
+    Parametry:
+    - names: lista nazw sal z pliku konfiguracyjnego
+    
+    Logika:
+    1. Sprawdza czy w bazie są jakieś sale
+    2. Jeśli nie ma - dodaje wszystkie z konfiguracji
+    3. Jeśli są - aktualizuje listę (dodaje nowe, usuwa nieistniejące)
+    """
+    conn = get_connection()
+    cur = conn.cursor()
+    
+    # Sprawdzamy ile sal jest obecnie w bazie danych
+    cur.execute("SELECT COUNT(*) c FROM rooms")
+    count = cur.fetchone()['c']
     
     if count == 0:
-        # First time - insert new rooms
+        # PIERWSZY RAZ - baza jest pusta, dodajemy wszystkie sale
+        print("Inicjalizacja sal konferencyjnych...")
         for n in names: 
             cur.execute("INSERT INTO rooms(name) VALUES(?)", (n,))
     else:
-        # Clear existing rooms and insert new ones to avoid conflicts
-        cur.execute("DELETE FROM rooms")
+        # AKTUALIZACJA - czyścimy stare sale i dodajemy nowe aby uniknąć konfliktów
+        print("Aktualizacja listy sal konferencyjnych...")
+        cur.execute("DELETE FROM rooms")  # Usuń wszystkie stare sale
         for n in names: 
-            cur.execute("INSERT INTO rooms(name) VALUES(?)", (n,))
+            cur.execute("INSERT INTO rooms(name) VALUES(?)", (n,))  # Dodaj nowe
     
+    # Zatwierdzamy zmiany w bazie danych
     conn.commit()
     conn.close()
 
-def get_rooms() -> list:
-    conn = get_connection(); cur = conn.cursor()
-    cur.execute("SELECT id, name FROM rooms ORDER BY id")
-    rows = [dict(r) for r in cur.fetchall()]; conn.close(); return rows
 
-# Reservations
+def get_rooms() -> list:
+    """
+    POBIERANIE LISTY WSZYSTKICH SAL
+    
+    Funkcja pobiera wszystkie sale konferencyjne z bazy danych.
+    Używana do wyświetlania w formularzu rezerwacji.
+    
+    Zwraca: Lista słowników z danymi sal [{'id': 1, 'name': 'Sala A'}, ...]
+    """
+    conn = get_connection()
+    cur = conn.cursor()
+    
+    # Pobieramy ID i nazwę wszystkich sal, posortowane według ID
+    cur.execute("SELECT id, name FROM rooms ORDER BY id")
+    rows = [dict(r) for r in cur.fetchall()]  # Konwertujemy każdy wiersz na słownik
+    
+    conn.close()
+    return rows
+
+
+# ========================================
+# ZARZĄDZANIE REZERWACJAMI
+# ========================================
 
 def _overlaps(s1, e1, s2, e2) -> bool:
-    fmt = "%H:%M"
-    t1s = datetime.datetime.strptime(s1, fmt)
-    t1e = datetime.datetime.strptime(e1, fmt)
-    t2s = datetime.datetime.strptime(s2, fmt)
-    t2e = datetime.datetime.strptime(e2, fmt)
+    """
+    FUNKCJA POMOCNICZA - SPRAWDZANIE CZY GODZINY SIĘ NAKŁADAJĄ
+    
+    Sprawdza czy dwa przedziały czasowe nachodzą na siebie.
+    Używana do kontroli czy nowa rezerwacja nie koliduje z istniejącą.
+    
+    Parametry:
+    - s1, e1: start i koniec pierwszego przedziału (format "HH:MM")
+    - s2, e2: start i koniec drugiego przedziału (format "HH:MM")
+    
+    Zwraca: True jeśli przedziały się nakładają, False w przeciwnym razie
+    
+    Przykład:
+    _overlaps("10:00", "12:00", "11:00", "13:00") -> True (nakładają się)
+    _overlaps("10:00", "11:00", "12:00", "13:00") -> False (nie nakładają się)
+    """
+    fmt = "%H:%M"  # Format godziny
+    
+    # Konwertujemy stringi na obiekty datetime dla łatwiejszego porównania
+    t1s = datetime.datetime.strptime(s1, fmt)  # start pierwszego przedziału
+    t1e = datetime.datetime.strptime(e1, fmt)  # koniec pierwszego przedziału
+    t2s = datetime.datetime.strptime(s2, fmt)  # start drugiego przedziału
+    t2e = datetime.datetime.strptime(e2, fmt)  # koniec drugiego przedziału
+    
+    # Sprawdzamy czy przedziały się nakładają
+    # Logika: przedziały się nakładają jeśli start jednego jest przed końcem drugiego
+    # i start drugiego jest przed końcem pierwszego
     return t1s < t2e and t2s < t1e
 
 
 def is_available(room_id: int, date: str, start: str, end: str) -> bool:
-    conn = get_connection(); cur = conn.cursor()
+    """
+    SPRAWDZANIE DOSTĘPNOŚCI SALI
+    
+    Sprawdza czy dana sala jest wolna w określonym terminie.
+    Używana przed utworzeniem nowej rezerwacji.
+    
+    Parametry:
+    - room_id: ID sali (z tabeli rooms)
+    - date: data w formacie "YYYY-MM-DD"
+    - start: godzina rozpoczęcia "HH:MM"  
+    - end: godzina zakończenia "HH:MM"
+    
+    Zwraca: True jeśli sala jest wolna, False jeśli zajęta
+    
+    Logika:
+    1. Pobiera wszystkie istniejące rezerwacje dla danej sali w danym dniu
+    2. Sprawdza czy nowy termin nakłada się z którąkolwiek z istniejących rezerwacji
+    3. Jeśli tak - sala zajęta, jeśli nie - sala wolna
+    """
+    conn = get_connection()
+    cur = conn.cursor()
+    
+    # Pobieramy wszystkie rezerwacje dla tej sali w tym dniu
     cur.execute("SELECT start_time, end_time FROM reservations WHERE room_id=? AND date=?",
                 (room_id, date))
-    rows = cur.fetchall(); conn.close()
+    rows = cur.fetchall()
+    conn.close()
+    
+    # Sprawdzamy czy nowy termin koliduje z którąkolwiek istniejącą rezerwacją
     for r in rows:
         if _overlaps(start, end, r['start_time'], r['end_time']):
-            return False
-    return True
+            return False  # Kolizja znaleziona - sala zajęta
+    
+    return True  # Brak kolizji - sala wolna
 
 
 def create_reservation(room_id: int, date: str, start_time: str, end_time: str,
                        user_name: str, password: str, user_email: str, description=None) -> str:
+    """
+    TWORZENIE NOWEJ REZERWACJI
+    
+    Główna funkcja odpowiedzialna za utworzenie nowej rezerwacji sali.
+    Sprawdza dostępność, zapisuje w bazie i wysyła powiadomienia email.
+    
+    Parametry:
+    - room_id: ID sali do zarezerwowania
+    - date: data rezerwacji "YYYY-MM-DD"
+    - start_time, end_time: godziny "HH:MM"
+    - user_name: imię i nazwisko rezerwującego
+    - password: hasło do zarządzania rezerwacją (użytkownik może potem usunąć/edytować)
+    - user_email: email rezerwującego (wymagany do powiadomień)
+    - description: opcjonalny opis rezerwacji
+    
+    Zwraca: token rezerwacji (unikalny identyfikator)
+    Wyjątki: ValueError jeśli email nieprawidłowy lub sala zajęta
+    """
+    # WALIDACJA 1: Sprawdzenie czy email jest prawidłowy
     if not user_email or "@" not in user_email:
         raise ValueError("Email jest wymagany")
     
+    # WALIDACJA 2: Sprawdzenie czy sala jest dostępna
     if not is_available(room_id, date, start_time, end_time):
-        # Send collision notification
+        # Sala jest zajęta - wysyłamy powiadomienie o kolizji
         try:
             from email_service import send_collision_notification
-            # Get room name
-            conn = get_connection(); cur = conn.cursor()
+            
+            # Pobieramy nazwę sali do powiadomienia
+            conn = get_connection()
+            cur = conn.cursor()
             cur.execute("SELECT name FROM rooms WHERE id=?", (room_id,))
             room_name = cur.fetchone()['name']
             conn.close()
